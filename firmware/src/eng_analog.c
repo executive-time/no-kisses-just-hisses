@@ -156,6 +156,13 @@ static const preset_t ANALOG_PRESETS[] = {
      XP(P_LD_PIT + 1, 1, P_LRATE + 1, 80, P_LFADE + 1, 60, P_GLIDE + 1, 30)},
     {"SAW BASS", {0, 6, 64, 0, 52, 30, 40, 64}, {0, 60, 60, 20}, 30, 1, FX(8, 0, 0, 4), XP(P_TRANS + 1, -24)},
     {"SINE PAD", {3, 10, 64, 4, 90, 0, 0, 32}, {80, 90, 118, 90}, 0, 0, FX(0, 60, 20, 65)},
+    /* NKJH: the NO KISSES JUST HISSES presets (docs/NKJH-SPEC.md 1), each with its own INSERT; appended so the
+     * SLOOP presets keep their numbers (projects store them) */
+    {"HISS BASS", {0, 8, 64, 10, 42, 60, 90, 64}, {0, 48, 50, 14}, 44, 1, FX(40, 0, 0, 0), XP(P_ITYPE + 1, 4, P_IA + 1, 88, P_GLIDE + 1, 24, P_TRANS + 1, -24)},
+    {"SCRAPE", {1, 30, 64, 24, 54, 30, 110, 64}, {0, 70, 110, 20}, 20, 1, FX(30, 0, 0, 0), XP(P_ITYPE + 1, 2, P_IA + 1, 100, P_TRANS + 1, -24)},
+    {"GABBA SUB", {3, 0, 0, 0, 127, 0, 127, 0}, {0, 92, 0, 36}, 0, 1, FX(60, 0, 0, 0), XP(P_ITYPE + 1, 2, P_IA + 1, 120, P_ED_PIT + 1, 34, P_TRANS + 1, -24)},
+    {"ACID BITE", {0, 0, 0, 0, 30, 122, 70, 64}, {0, 50, 20, 18}, 60, 1, FX(40, 0, 18, 6), XP(P_ITYPE + 1, 4, P_GLIDE + 1, 34, P_GLMODE + 1, 1, P_TRANS + 1, -12)},
+    {"ACID RIP", {1, 0, 0, 0, 24, 127, 100, 64}, {0, 52, 26, 16}, 63, 1, FX(50, 0, 30, 0), XP(P_ITYPE + 1, 3, P_IA + 1, 80, P_GLIDE + 1, 28, P_TRANS + 1, -12)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): both oscillators moved by r (Q32) of a turn of the note,

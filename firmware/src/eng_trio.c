@@ -375,6 +375,10 @@ static const preset_t TRIO_PRESETS[] = {
     {"SQR LEAD", {1, 0, 12, 4, 0, 90, 20, 50}, {2, 70, 110, 30}, 10, 1, FX(0, 10, 28, 22), XP(P_GLIDE + 1, 40)},
     {"POWER STAB", {0, 7, 12, 8, 0, 85, 25, 64}, {0, 70, 50, 36}, 30, 0, FX(16, 10, 20, 25)},
     {"PULSE PAD", {1, 0, 12, 20, 0, 70, 10, 30}, {60, 90, 115, 85}, 0, 0, FX(0, 50, 20, 60), XP(P_LD_SHP + 1, 25, P_LRATE + 1, 30)},
+    /* NKJH: the NO KISSES JUST HISSES presets (docs/NKJH-SPEC.md 1), each with its own INSERT; appended so the
+     * SLOOP presets keep their numbers (projects store them) */
+    {"HOOVER X", {0, 0, -12, 48, 0, 64, 50, 64}, {6, 70, 110, 40}, 20, 1, FX(30, 40, 10, 20), XP(P_ITYPE + 1, 2, P_IA + 1, 90, P_GLIDE + 1, 70)},
+    {"WAREHOUSE", {0, 3, 7, 10, 0, 70, 60, 64}, {0, 50, 10, 26}, 46, 0, FX(30, 10, 30, 20), XP(P_ITYPE + 1, 3, P_IA + 1, 76)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the three oscillators moved by r (Q32) of a turn of the

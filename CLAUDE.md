@@ -32,7 +32,9 @@ Claude's shell cannot delete files in this folder, so git leaves lock files behi
    update identity unless the task is about them and the user agreed. These decide whether the
    FM-1 can still be rescued.
 3. Register access stays in `hal/` (the build checks this).
-4. One small change at a time on branch `nkjh`: change → build → test → commit.
+4. One small change at a time on branch `nkjh`: change → build → test → emulator → commit.
+   Emulator: https://joakimeriksson.github.io/fm1-emu/ ("Open .fwsc…" → `build/felucca.fwsc`). It runs at
+   100 MHz (the FM-1: 240 MHz), so audio drop-outs there are not a CPU verdict: the host tests are.
    Commit messages say what changed musically and why.
 5. Sound changes: `GOLDEN_UPDATE=1` only after an *intended* change, and say which renders changed.
    CPU: `BUDGET_UPDATE=1` only when a cost increase is intended and explained; never to silence a test.

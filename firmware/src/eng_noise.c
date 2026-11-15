@@ -270,6 +270,14 @@ static const preset_t NOISE_PRESETS[] = {
     {"NZ SNARE", {NZ_ANLG, 20, 90, 30, 64, 0, 0, 0}, {0, 60, 0, 44}, 0, 0, FX(0, 0, 0, 25)},
     {"BITCRUSH", {NZ_ANLG, 40, 90, 40, 64, 0, 0, 100}, {0, 70, 110, 40}, 0, 0, FX(0, 0, 20, 30)},
     {"RADIO", {NZ_LFSR, 20, 70, 90, 64, 0, 60, 48}, {10, 70, 120, 50}, 0, 0, FX(0, 10, 30, 40)},
+    /* NKJH: the NO KISSES JUST HISSES presets (docs/NKJH-SPEC.md 1), each with its own INSERT; appended so the
+     * SLOOP presets keep their numbers (projects store them) */
+    {"CLANG", {NZ_META, 0, 96, 100, 100, 40, 0, 20}, {0, 48, 0, 30}, 20, 0, FX(20, 0, 20, 20), XP(P_ITYPE + 1, 2, P_IA + 1, 90, P_IC + 1, 127)},
+    {"STEAM HIT", {NZ_ANLG, 0, 104, 30, 0, 0, 0, 0}, {0, 28, 0, 22}, 0, 0, FX(0, 0, 0, 24), XP(P_ITYPE + 1, 5, P_IA + 1, 50)},
+    {"STATIC", {NZ_LFSR, 0, 90, 20, 0, 90, 30, 60}, {20, 80, 110, 40}, 0, 0, FX(0, 0, 20, 30), XP(P_ITYPE + 1, 5, P_IA + 1, 40)},
+    {"FURNACE", {NZ_ANLG, 120, 50, 110, 64, 0, 110, 0}, {60, 90, 120, 80}, 0, 0, FX(30, 20, 0, 50), XP(P_ITYPE + 1, 4, P_IA + 1, 100)},
+    {"GLITCH", {NZ_LFSR, 0, 127, 0, 127, 120, 0, 110}, {0, 30, 0, 16}, 0, 0, FX(0, 0, 30, 10), XP(P_ITYPE + 1, 5, P_IA + 1, 30)},
+    {"SHRAPNEL", {NZ_DUST, 0, 110, 60, 0, 120, 60, 0}, {0, 50, 0, 30}, 0, 0, FX(20, 0, 40, 30), XP(P_ITYPE + 1, 2, P_IA + 1, 110)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the phase moved by r (Q32) and the noise from its own

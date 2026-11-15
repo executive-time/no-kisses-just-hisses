@@ -154,6 +154,26 @@ int main(void)
         check(trk[0].step[0].time == ST_NOTE && trk[0].step[0].note[0] == 48, "... and keeps its pattern");
         key_check("over Clipper's working project");
     }
+    {   /* NKJH 1.2: the NKJH presets lead the PRESETS bank, each with its own INSERT and a level trim */
+        uint32_t n, nk = 0, ok_ins = 1, ok_first = 1, seen_sloop = 0;
+        for (n = 0; n < NBANK; n++) {
+            const engine_t *e = ENGINES[BANK[n].e];
+            uint32_t pi;
+            if (BANK[n].kind < BK_DIRT) { seen_sloop = 1; continue; }
+            nk++;
+            if (seen_sloop) ok_first = 0;
+            for (pi = 0; pi < e->npresets && strcmp(e->presets[pi].name, BANK[n].name); pi++) {}
+            set_engine_of(&trk[1], BANK[n].e);
+            apply_preset_to(&trk[1], pi);
+            if (pi >= e->npresets || !trk[1].p[P_ITYPE]) {
+                ok_ins = 0;
+                printf("boot_sound: NKJH preset %s: %s\n", BANK[n].name, pi >= e->npresets ? "not found" : "no INSERT");
+            }
+        }
+        printf("boot_sound: NKJH presets: %u\n", nk);
+        check(nk >= 18 && ok_first, "NKJH presets: at least 18, before every SLOOP preset in the bank");
+        check(ok_ins, "NKJH presets: each one has its own INSERT");
+    }
     printf("boot_sound: %d failed\n", fails);
     return fails != 0;
 }

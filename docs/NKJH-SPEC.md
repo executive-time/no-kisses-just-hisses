@@ -124,3 +124,10 @@ Elke stap: bouwen → alle tests groen → commit → pas dan flashen.
 - 2026-11-15: VOICE en PHYS geschrapt; standaardtempo 165 BPM; DESTROY op de SEL-laag.
 - Fase 1, stap 1: standaardproject = ACID 303 / RAVE STAB / NZ METAL / kit INDUSTR, 165 BPM, DUCK 40 %.
   De standaardinserts per track komen met de NKJH-presetbank (een preset zet zijn eigen INSERT).
+- Fase 1, stap 2: de eerste 18 NKJH-presets, vooraan in de PRESETS-bank, elk met eigen INSERT en volume-afstemming
+  (−15 LUFS; korte percussie zit op het limiterplafond, zoals SLOOP's eigen NZ SNARE).
+  DIRT: HISS BASS, SCRAPE, GABBA SUB, FM GRIND · PERC: CLANG, STEAM HIT, SHRAPNEL, ANVIL ·
+  NOIS: STATIC, FURNACE, 1BIT HISS · ACID: ACID BITE, ACID RIP, HOOVER X, WAREHOUSE · BRKN: GLITCH, DEAD MODEM, PIXEL WIRE.
+  Achteraan elke enginetabel toegevoegd: SLOOP-presets houden hun nummer. Klankontwerp nog niet beluisterd.
+- Les: CRUSH-insert + snelle toonhoogte-sweep (LOFI SWP) geeft DC-offset. Vermijden in presets.
+

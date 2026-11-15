@@ -140,6 +140,10 @@ static const preset_t DIGITAL_PRESETS[] = {
     {"TUBE BELL", {4, 6, 1, 13, 50, 90, 0, 0}, {0, 100, 0, 90}, 0, 0, FX(0, 10, 25, 50)},
     {"FM PLUCK", {4, 2, 1, 3, 70, 15, 0, 0}, {0, 78, 0, 54}, 0, 0, FX(0, 10, 28, 30)},
     {"FM GRAND", {4, 1, 2, 12, 60, 40, 10, 0}, {0, 90, 20, 60}, 0, 0, FX(0, 20, 14, 30)},
+    /* NKJH: the NO KISSES JUST HISSES presets (docs/NKJH-SPEC.md 1), each with its own INSERT; appended so the
+     * SLOOP presets keep their numbers (projects store them) */
+    {"ANVIL", {0, 13, 10, 7, 110, 24, 50, 0}, {0, 44, 0, 36}, 0, 0, FX(20, 0, 20, 30), XP(P_ITYPE + 1, 3, P_IA + 1, 70)},
+    {"FM GRIND", {0, 1, 2, 1, 96, 50, 90, 0}, {0, 60, 80, 20}, 0, 1, FX(40, 0, 0, 0), XP(P_ITYPE + 1, 3, P_IA + 1, 90, P_TRANS + 1, -24)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the four operators moved together by r (Q32) of a turn of

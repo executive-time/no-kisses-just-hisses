@@ -213,6 +213,11 @@ static const preset_t LOFI_PRESETS[] = {
     {"1BIT BEEP", {3, 0, 64, 0, 0, 0, 0, 100}, {0, 40, 60, 20}, 0, 0, FX(0, 0, 25, 15)},
     {"WAVE LEAD", {0, 4, 40, 0, 0, 40, 0, 120}, {2, 60, 100, 30}, 0, 1, FX(0, 0, 30, 20), XP(P_GLIDE + 1, 30)},
     {"CHIP NOISE", {2, 3, 64, 0, 90, 0, 0, 127}, {0, 55, 0, 24}, 0, 0, FX(0, 0, 10, 10)},
+    /* NKJH: the NO KISSES JUST HISSES presets (docs/NKJH-SPEC.md 1), each with its own INSERT; appended so the
+     * SLOOP presets keep their numbers (projects store them) */
+    {"DEAD MODEM", {2, 0, 32, 40, 100, 60, 2, 90}, {0, 60, 80, 30}, 0, 0, FX(0, 0, 30, 10), XP(P_ITYPE + 1, 2, P_IA + 1, 90)},
+    {"1BIT HISS", {3, 3, 64, 100, 0, 0, 0, 80}, {30, 80, 120, 60}, 0, 0, FX(0, 0, 0, 30), XP(P_ITYPE + 1, 2, P_IA + 1, 80)},
+    {"PIXEL WIRE", {3, 0, 20, 0, 0, 40, 0, 70}, {0, 50, 60, 20}, 0, 1, FX(0, 0, 30, 10), XP(P_ITYPE + 1, 2, P_IA + 1, 100)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the oscillator moved by r (Q32) of a turn of the note and

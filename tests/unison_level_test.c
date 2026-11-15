@@ -37,6 +37,8 @@ static double play(uint32_t e, uint32_t p, uint32_t mode, uint32_t note)
     trk[0].p[P_VOICE] = (int16_t)mode;
     for (b = 0; b < 16; b++)
         mix_block(o, CTL);
+    uni_seed[0] = 0x1234567u, uni_seed[1] = 0x13579BDu;   /* NKJH: every render from the same seeds (a preset added
+                                                     * before this one no longer changes its random phases) */
     trk_note_on(&trk[0], note, 100);
     for (b = 0; b < 760; b++) {
         mix_block(o, CTL);

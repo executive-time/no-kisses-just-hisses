@@ -710,9 +710,17 @@ UI_SMALL static void select_engine(uint32_t e)
 /* the factory presets as one list by kind (basses, keys, organs, pads, leads, plucks and bells, stabs,
  * the rest), then the used user presets: the PRESETS knob and the PRESETS page browse it. By name: an
  * engine's preset table may change order; tests/ui_pages_test.c checks every preset is here once */
-enum { BK_BASS, BK_KEYS, BK_ORGAN, BK_PAD, BK_LEAD, BK_PLUCK, BK_STAB, BK_FX };
-static const char *const BANK_KIND[] = {"BASS", "KEYS", "ORGN", "PAD", "LEAD", "PLCK", "STAB", "FX"};
+enum { BK_BASS, BK_KEYS, BK_ORGAN, BK_PAD, BK_LEAD, BK_PLUCK, BK_STAB, BK_FX,
+       BK_DIRT, BK_PERC, BK_NOIS, BK_ACID, BK_BRKN };   /* NKJH: the five families (docs/NKJH-SPEC.md 1) */
+static const char *const BANK_KIND[] = {"BASS", "KEYS", "ORGN", "PAD", "LEAD", "PLCK", "STAB", "FX",
+                                        "DIRT", "PERC", "NOIS", "ACID", "BRKN"};
 static const struct { uint8_t kind, e; const char *name; } BANK[] = {
+    /* NKJH first: DIRTY BASS, PERCUSSION, NOISE & TEXTURE, RAVE & ACID, BROKEN MACHINE */
+    {BK_DIRT, 0, "HISS BASS"}, {BK_DIRT, 0, "SCRAPE"}, {BK_DIRT, 0, "GABBA SUB"}, {BK_DIRT, 1, "FM GRIND"},
+    {BK_PERC, ENGI_NOISE, "CLANG"}, {BK_PERC, ENGI_NOISE, "STEAM HIT"}, {BK_PERC, ENGI_NOISE, "SHRAPNEL"},
+    {BK_PERC, 1, "ANVIL"}, {BK_NOIS, ENGI_NOISE, "STATIC"}, {BK_NOIS, ENGI_NOISE, "FURNACE"}, {BK_NOIS, 3, "1BIT HISS"},
+    {BK_ACID, 0, "ACID BITE"}, {BK_ACID, 0, "ACID RIP"}, {BK_ACID, 6, "HOOVER X"}, {BK_ACID, 6, "WAREHOUSE"},
+    {BK_BRKN, ENGI_NOISE, "GLITCH"}, {BK_BRKN, 3, "DEAD MODEM"}, {BK_BRKN, 3, "PIXEL WIRE"},
     {BK_BASS, 0, "808 BOOM"}, {BK_BASS, 0, "808 DIRTY"}, {BK_BASS, 0, "808 SLIDE"}, {BK_BASS, 0, "SUB BASS"},
     {BK_BASS, 0, "PLUGG BASS"}, {BK_BASS, 0, "REESE"}, {BK_BASS, 0, "WOBBLE"}, {BK_BASS, 0, "ACID 303"},
     {BK_BASS, 1, "FM BASS"}, {BK_BASS, 2, "CZ BASS"}, {BK_BASS, 6, "FAT BASS"}, {BK_BASS, 0, "FUNK BASS"},
