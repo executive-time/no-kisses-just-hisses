@@ -121,13 +121,13 @@ int main(void)
     for (i = 0; i < 400; i++) ui_frame();         /* (an autosave) */
     persist_flush_now();
     {   /* NKJH: a first power-on is the NKJH set-up (docs/NKJH-SPEC.md 2) */
-        static const char *const want[NPART] = {"ACID 303", "RAVE STAB", "NZ METAL"};
+        static const char *const want[NPART] = {"ACID BITE", "WAREHOUSE", "STATIC"};
         uint32_t k, kit = (uint32_t)TDRUM->p[P_E0], ok = 1;
         for (k = 0; k < NPART; k++)
             ok &= !strcmp(ENGINES[trk[k].eng_req]->presets[trk[k].preset].name, want[k]);
         printf("boot_sound: NKJH first power-on: %u BPM, DUCK %d, kit %s\n", (unsigned)song.g[G_BPM], song.g[G_DUCK],
                kit >= DRUM_SAMPLED && kit < DRUM_SAMPLED + DS_NKITS ? DS_KITS[kit - DRUM_SAMPLED].name : "?");
-        check(ok, "NKJH first power-on: ACID 303, RAVE STAB, NZ METAL");
+        check(ok, "NKJH first power-on: ACID BITE, WAREHOUSE, STATIC");
         check(song.g[G_BPM] == 165 && song.g[G_DUCK] == 51, "NKJH first power-on: 165 BPM, DUCK 40 %");
         check(kit >= DRUM_SAMPLED && kit < DRUM_SAMPLED + DS_NKITS && !strcmp(DS_KITS[kit - DRUM_SAMPLED].name, "INDUSTR"),
               "NKJH first power-on: the INDUSTR kit");
@@ -150,7 +150,7 @@ int main(void)
         printf("boot_sound: over Clipper's project: track 1 %s %s, TRN %d\n", ENGINES[trk[0].eng_req]->name,
                ENGINES[trk[0].eng_req]->presets[trk[0].preset].name, trk[0].p[P_TRANS]);
         check(trk[0].eng_req == TRK_DEF[0][0] && trk[0].preset == TRK_DEF[0][1] && trk[0].p[P_TRANS] == -12,
-              "over Clipper's working project: track 1 gets its default sound (NKJH: ACID 303, TRN -12)");
+              "over Clipper's working project: track 1 gets its default sound (NKJH: ACID BITE, TRN -12)");
         check(trk[0].step[0].time == ST_NOTE && trk[0].step[0].note[0] == 48, "... and keeps its pattern");
         key_check("over Clipper's working project");
     }
@@ -173,6 +173,10 @@ int main(void)
         printf("boot_sound: NKJH presets: %u\n", nk);
         check(nk >= 18 && ok_first, "NKJH presets: at least 18, before every SLOOP preset in the bank");
         check(ok_ins, "NKJH presets: each one has its own INSERT");
+        for (ok_ins = 1, n = 0; n < NBANK; n++)
+            ok_ins &= !NKJH_ENGINE_GONE(BANK[n].e);
+        check(ok_ins && !NKJH_ENGINE_GONE(TRK_DEF[0][0]) && !NKJH_ENGINE_GONE(TRK_DEF[1][0]) && !NKJH_ENGINE_GONE(TRK_DEF[2][0]),
+              "NKJH: no PRESETS entry or default sound on VOICE, WHEEL or PHYS");
     }
     printf("boot_sound: %d failed\n", fails);
     return fails != 0;

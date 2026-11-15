@@ -451,23 +451,38 @@ static int32_t punch_key(uint32_t k)
     int32_t i = W[k % 12u];
     return i < 0 ? -1 : (int32_t)(k / 12u) * 7 + i;
 }
-/* the black keys, F#3 .. F#5, and their effects 16..26 */
+/* the black keys, F#3 .. F#5: the key places 16..26 */
 static const uint8_t PUNCH_BLACK[PUNCH_NFX - 16u] = {1, 3, 5, 8, 10, 13, 15, 17, 20, 22, 25};
+/* NKJH (docs/NKJH-SPEC.md 3B): which effect each key place plays (0..15 the white keys, 16..26 the black ones).
+ * SLOOP played effect n on place n; the effects keep their numbers (the editor and MIDI FX CH name them by
+ * effect), only the keys move: loops and stutter first, then the tape (stop, rewind, half), freeze, damage */
+static const uint8_t PUNCH_SLOT_FX[PUNCH_NFX] = {
+    PX_LOOP4, PX_LOOP8, PX_LOOP16, PX_LOOP32, PX_STUT, PX_GATE, PX_REV, PX_ECHO,
+    PX_STOP, PX_RWD, PX_HALF, PX_FREEZE, PX_CRUSH, PX_DOWN, PX_KLOW, PX_FADE,
+    PX_KMID, PX_KHIGH, PX_LPF, PX_HPF, PX_OCT, PX_FLANGE, PX_LOOP8T, PX_WOBBLE, PX_TEL, PX_PAN, PX_MONO};
+static uint32_t punch_slot_of_fx(uint32_t fx)
+{
+    uint32_t s;
+    for (s = 0; s < PUNCH_NFX; s++)
+        if (PUNCH_SLOT_FX[s] == fx)
+            return s;
+    return 0;
+}
 /* the keyboard (seq.c keyboard_block) while FX is held: a key -> its effect (-1 none) */
 static int32_t punch_fx_of_key(uint32_t k)
 {
     int32_t w = punch_key(k);
     uint32_t i;
     if (w >= 0)
-        return w;
+        return PUNCH_SLOT_FX[w];
     for (i = 0; i < PUNCH_NFX - 16u; i++)
         if (PUNCH_BLACK[i] == k)
-            return (int32_t)(16u + i);
+            return PUNCH_SLOT_FX[16u + i];
     return -1;
 }
 static uint32_t punch_key_of_fx(uint32_t fx)          /* an effect -> its key (the lit key) */
 {
     static const uint8_t K[7] = {0, 2, 4, 6, 7, 9, 11};   /* the white keys of an octave, from F */
-    fx %= PUNCH_NFX;
-    return fx < 16u ? fx / 7u * 12u + K[fx % 7u] : PUNCH_BLACK[fx - 16u];
+    uint32_t s = punch_slot_of_fx(fx % PUNCH_NFX);       /* (NKJH: its key place) */
+    return s < 16u ? s / 7u * 12u + K[s % 7u] : PUNCH_BLACK[s - 16u];
 }

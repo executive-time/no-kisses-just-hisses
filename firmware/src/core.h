@@ -23,6 +23,9 @@ enum { V_POLY, V_MONO, V_LEGATO, V_UNISON };   /* P_VOICE */
 #define NENGINES (12 + FELUCCA_SLICE)
 #define ENGI_GRAIN 8u            /* GRAIN, PHYS, NOISE (SLOOP 2.5, appended after FM6: the stores keep the numbers) */
 #define ENGI_PHYS 10u
+/* NKJH (docs/NKJH-SPEC.md 1): VOICE (5), WHEEL (7) and PHYS are out of reach: the engine knob skips them and no
+ * PRESETS entry plays them. Their code and numbers stay (a project that uses one still opens) until fase 4 */
+#define NKJH_ENGINE_GONE(e) ((e) == 5u || (e) == 7u || (e) == ENGI_PHYS)
 #define ENGI_NOISE 11u
 #define ENGI_SLICE 12u           /* with FELUCCA_SLICE: after NOISE */
 #define ENGI_FM6 9u              /* the FM6 engine's index (eng_fm6.c, the stores: append-only) */

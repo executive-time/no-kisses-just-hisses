@@ -706,7 +706,8 @@ static void t_midi_fx(void)
     note_in(4, 40, 0);
     note_in(5, 53, 0);
     printf("  FX CH 5: F3 -> %d, up -> %d; F#3 -> %d, G3 -> %d, F#3 up -> %d, G3 up -> %d\n", r1, r2, r3, r4, r5, r6);
-    check(r0 == -1 && r1 == 0 && r2 == -1 && r3 == 16 && r4 == 1 && r5 == 1 && r6 == -1 && r7 == -1,
+    check(r0 == -1 && r1 == PUNCH_SLOT_FX[0] && r2 == -1 && r3 == PUNCH_SLOT_FX[16] && r4 == PUNCH_SLOT_FX[1] &&   /* NKJH: */
+          r5 == PUNCH_SLOT_FX[1] && r6 == -1 && r7 == -1,                       /* the key places */
           "MIDI FX CH (2.7): its notes hold the punch-in effects as FX + the FM-1's keys (white 1..16, black 17..27)");
     note_in(4, 79, 100);                                /* G5: the last white key, effect 15 */
     r1 = punch.req;
@@ -724,7 +725,7 @@ static void t_midi_fx(void)
     r4 = punch.req;
     note_in(6, 53, 0);
     song.g[G_ROUTE] = 0, song.g[G_FXCH] = 0;
-    check(r1 == 15 && r2 == 15 && r3 == -1 && r4 == 0,
+    check(r1 == PUNCH_SLOT_FX[15] && r2 == PUNCH_SLOT_FX[15] && r3 == -1 && r4 == PUNCH_SLOT_FX[0],   /* NKJH */
           "MIDI FX CH: G5 the 16th effect; an FM-1 key taking over keeps it; IN = CLOCK ignores it; IN = CH n leaves it");
     render(8);
 }

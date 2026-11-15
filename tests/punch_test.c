@@ -306,7 +306,7 @@ int main(int argc, char **argv)
             events_block(CTL);
             assert(w >= 0 && w < (int32_t)PUNCH_NFX && punch.req == w);
             assert(punch_key_of_fx((uint32_t)w) == k);   /* (the key that lights) */
-            assert(punch_key(k) < 0 ? w >= 16 : w == punch_key(k));
+            assert(punch_key(k) < 0 ? punch_slot_of_fx((uint32_t)w) >= 16u : w == PUNCH_SLOT_FX[punch_key(k)]);   /* (NKJH) */
             seen |= 1u << w;
             assert(!trk[0].step[0].n && !trk[0].v[0].active);
             fm1_in.notes = 0;
@@ -315,7 +315,8 @@ int main(int argc, char **argv)
         }
         assert(seen == (1u << PUNCH_NFX) - 1u);         /* every effect on a key of its own */
         assert(punch_key(0) == 0 && punch_key(26) == 15);
-        assert(punch_fx_of_key(1) == PX_KLOW && punch_fx_of_key(25) == PX_FADE);
+        assert(punch_fx_of_key(1) == PX_KMID && punch_fx_of_key(25) == PX_MONO);   /* NKJH: the black keys' ends */
+        assert(punch_fx_of_key(0) == PX_LOOP4 && punch_fx_of_key(14) == PX_STOP && punch_fx_of_key(26) == PX_FADE);   /* NKJH: F3, the 9th white key, G5 */
         fm1_in.buttons = 0;
         song.rec = 0;
         transport_req = 2;

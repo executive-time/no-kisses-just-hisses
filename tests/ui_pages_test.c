@@ -148,7 +148,8 @@ int main(int argc, char **argv)
 {
     uint32_t i;
     outdir = argc > 1 ? argv[1] : "build/host";
-    {   /* the preset list by kind (ui.c BANK): every factory preset of every engine once, every name found */
+    {   /* the preset list by kind (ui.c BANK): every name found, none twice. NKJH: only the NKJH presets are listed
+         * (SLOOP's stay in the engines' tables), so a preset is in it once or not at all, and only NKJH kinds */
         uint32_t e, k, n, hits;
         bank_resolve();
         for (n = 0; n < NBANK; n++)
@@ -160,10 +161,15 @@ int main(int argc, char **argv)
             for (k = 0; k < ENGINES[e]->npresets; k++) {
                 for (hits = 0, n = 0; n < NBANK; n++)
                     hits += BANK[n].e == e && bank_pi[n] == k;
-                if (hits != 1) {
+                if (hits > 1) {
                     printf("ui: preset %s (engine %u) is %u times in BANK\n", ENGINES[e]->presets[k].name, e, hits);
                     fails++;
                 }
+            }
+        for (n = 0; n < NBANK; n++)
+            if (BANK[n].kind < BK_DIRT) {
+                printf("ui: BANK %s: not an NKJH kind\n", BANK[n].name);
+                fails++;
             }
     }
     panel = PANEL_DEFAULT;
@@ -284,10 +290,14 @@ int main(int argc, char **argv)
     fm1_in.notes = 1u << 4; frame(); check(punch.req == 2, "FX + the 3rd white key: punch effect 3");
     ppm("layer-punch-on");
     fm1_in.notes = 0; frame(); check(punch.req == -1, "key up: the mix comes back");
-    fm1_in.notes = 1u << 17; frame(); check(punch.req == PX_FREEZE, "FX + the black key A#4: FREEZE (2.6: 11 black-key effects)");
+    fm1_in.notes = 1u << 17; frame(); check(punch.req == PX_WOBBLE, "FX + the black key A#4: WOBBLE (NKJH; 2.6: 11 black-key effects)");
     check(keys_lit() == 1u << 17, "its key lights");
     ppm("layer-punch-black");
     fm1_in.notes = 0; frame(); check(punch.req == -1, "black key up: the mix comes back");
+    fm1_in.notes = 1u << key_of_white(11); frame(); check(punch.req == PX_FREEZE && keys_lit() == 1u << key_of_white(11),
+          "NKJH: FX + the 12th white key: FREEZE, its key lights");
+    fm1_in.notes = 1u << key_of_white(8); frame(); check(punch.req == PX_STOP, "NKJH: FX + the 9th white key: TAPE STOP");
+    fm1_in.notes = 0; frame();
     encs[panel.enc[EN_K2]] = 10; frame(); check(song.g[G_DUST] > 0, "FX + KNOB 2: DUST");
     encs[panel.enc[EN_K1]] = -10; frame(); check(song.g[G_FILT] < 0, "FX + KNOB 1: the filter (low-pass)");
     encs[panel.enc[EN_K4]] = 12; frame(); check(TSEL->p[P_TFLT] > 0 && song.g[G_FILT] < 0, "FX + KNOB 4: the selected track's FILTER (high-pass)");

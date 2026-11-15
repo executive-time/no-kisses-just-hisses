@@ -133,9 +133,18 @@ Elke stap: bouwen → alle tests groen → commit → pas dan flashen.
 - Fase 1, stap 3: vijf NKJH-drumkits op de plaats van vijf wereldkits (het aantal blijft 32, dus de USR- en
   SYN-kits houden hun nummer): DEMBOW → **GABBER**, AMAPIANO → **EBM**, AFRO → **WAREHSE** (warehouse),
   LATIN → **NOISE** (gecrusht), JAZZ → **RUST** (metaal). Volume gemeten; de 27 SLOOP-kits bit voor bit gelijk.
+- Fase 1, stap 4 (2026-11-15): de PRESETS-lijst bevat alleen NKJH-klanken; SLOOP's 153 blijven in de firmware
+  (oude projecten openen, de tests renderen ze) maar zijn niet meer te kiezen. Een engine kiezen laadt zijn eerste
+  NKJH-klank. Nieuw project: ACID BITE / WAREHOUSE / STATIC. De klankbibliotheek en engines breiden we later
+  doelbewust uit.
+- Fase 1, stap 5: punch-ins op de NKJH-volgorde (§3B). Zwarte toetsen: KILL MID, KILL HIGH, LP-sweep, HP-sweep,
+  OCT UP, FLANGER, LOOP 8T, WOBBLE, PHONE, AUTO-PAN, MONO. De effecten houden hun nummer (editor, MIDI FX CH).
+- Fase 1, stap 6: VOICE, WHEEL en PHYS onbereikbaar (de engineknop slaat ze over). De code fysiek verwijderen
+  (±4,4 KB werkgeheugen: PHYS is het grootste deel van de engine-arena) gebeurt aan het begin van fase 4.
 
 ## Ideeën voor later
 - **Live boetseren** (gebruiker, 2026-11-15): tijdens REC een witte toets vasthouden en aan een knop draaien,
   zodat de klank van die noot live wordt opgenomen en vervormd. Bouwt voort op SLOOP's parameter locks.
   Te plannen na fase 2, samen met een basisarsenaal klanken dat daarvoor gemaakt is.
-
+- **STEAM-engine** (gebruiker, 2026-11-15): een noisesynth die ritmisch "stoom" blaast: ruisstoten met eigen
+  ritme, druk en sissende uitlaat. Kandidaat voor de eerste eigen NKJH-engine (in de plaats van een geschrapte).

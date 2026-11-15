@@ -731,8 +731,9 @@ UI_SMALL static void layer_screen_draw(void)
                                                           "half", "low", "high", "phone", "crush", "alias", "gate", "echo",
                                                           "wobble", "k low", "k mid", "k high", "rewind", "oct up", "flange",
                                                           "pan", "freeze", "loop8t", "mono", "fade"};
-            int on = punch.req == (int8_t)i, black = i >= 16u;
-            str_cpy(tl[i].lab, PSHORT[i], 8);
+            uint32_t fx = PUNCH_SLOT_FX[i];                 /* NKJH: tile i is key place i, its effect fx */
+            int on = punch.req == (int8_t)fx, black = i >= 16u;
+            str_cpy(tl[i].lab, PSHORT[fx], 8);
             tl[i].bg = on ? C_WHITE : black ? C_BLACK : TE_G1;
             tl[i].fg = on ? C_BLACK : black ? TE_G3 : TE_G4;
             tl[i].top = on || black ? 0 : TE_DIM[i / 4u];

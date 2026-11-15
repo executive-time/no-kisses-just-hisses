@@ -515,7 +515,13 @@ UI_SMALL static void edit_param(uint32_t slot, int32_t steps)
             if (total)
                 preset_go((uint32_t)(((int32_t)cur + steps % (int32_t)total + (int32_t)total) % (int32_t)total));
         } else if (slot == 1u && !is_drum(TSEL)) {
-            select_engine((TSEL->eng_req + (steps > 0 ? 1u : NENGINES - 1u)) % NENGINES);
+            uint32_t ne = TSEL->eng_req % NENGINES, guard;
+            for (guard = 0; guard < NENGINES; guard++) {     /* NKJH: the next engine that is not gone */
+                ne = (ne + (steps > 0 ? 1u : NENGINES - 1u)) % NENGINES;
+                if (!NKJH_ENGINE_GONE(ne))
+                    break;
+            }
+            select_engine(ne);
         } else if (slot == 3u && !is_drum(TSEL)) {          /* (2.7) KNOB 4: FAV, right adds the sound, left removes it */
             fav_toggle(steps > 0);
         }
