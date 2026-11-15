@@ -458,7 +458,7 @@ UI_SMALL static void step_edit(uint32_t slot, int32_t steps)
     }
 }
 
-/* a new project: every track empty, the default sounds, 90 BPM (TOOLS > NEW) */
+/* a new project: every track empty, the default sounds, 165 BPM (TOOLS > NEW) */
 UI_SMALL static void project_new(void)
 {
     uint32_t i;

@@ -21,6 +21,8 @@ network and no Docker). From `~/NKJH`:
 - build: `cd fw && bash build.sh` (Docker + Rosetta, toolchain in `~/.jieli/toolchain`)
 - test: `bash test.sh` (logs to `~/NKJH/test-log.txt`; must end `ALL HOST TESTS PASSED`)
 Give the user exact commands to paste, one block at a time, and read the logs afterwards.
+Claude's shell cannot delete files in this folder, so git leaves lock files behind: Claude runs git only as
+`git --no-optional-locks --no-pager` with read-only commands (log, show, diff), and never commits itself.
 
 ## Hard rules
 1. Never flash the FM-1 unless the build passed, all host tests passed, and the user says go.
@@ -43,4 +45,6 @@ Give the user exact commands to paste, one block at a time, and read the logs af
 ## Baseline (2026-11-15)
 SLOOP v2.8.5 builds and all host tests pass on macOS (Apple silicon). Local fixes vs upstream:
 `tests/editor_host.c` includes `fm1_flash_id.h`; `tests/target_budget.txt` and
-`tests/cpu_baseline.txt` re-recorded on the JieLi toolchain jieli-linux-toolchains-20260730.1.
+re-recorded on the JieLi toolchain jieli-linux-toolchains-20260730.1. `tests/cpu_baseline.txt` is SLOOP's own
+(a re-recording on 2026-11-15 was an outlier: the Mac was busy). Rule: re-record the host CPU baseline only on an idle Mac,
+and compare the new `cpu/mix/idle` with the old one first.
