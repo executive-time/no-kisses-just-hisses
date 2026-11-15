@@ -295,29 +295,33 @@ KITS = [
         SNARE=S("tri", 170, 8, 20, 10, 170, 98, 1.7, 70, 50, "white", 122, 30, 420, ("hp", 600, .2), drive=64),
         CLAP=dict(ndec=380), OHH=dict(ndec=300))),
     # -- the world
-    ("DEMBOW", "REGGAETON", 0, kit(K808,
-        KICK=dict(decay=520, drive=20, click=40),
-        SNARE=S("tri", 230, 5, 10, 0, 80, 84, 1.7, 60, 36, "white", 100, 4, 130, ("hp", 1800, .2), drive=20),
-        CLAP=dict(ndec=160), RIM=dict(tlev=104), SHAKER=dict(ndec=70, nlev=98))),
-    ("AMAPIANO", "AMAPIANO", 0, kit(K808,
-        KICK=S("sine", 54, 14, 20, 8, 300, 124, click=40, drive=16),
-        KICK2=S("sine", 55, 24, 120, 20, 700, 124, 2.0, 50, 30, drive=56,             # the log drum
-                filt=("lp", 1400, .5, "all"), fenv=1.5),
-        SHAKER=S(None, src="white", nlev=104, nhold=16, ndec=70, filt=("bp", 6500, .35)),
-        CLAP=dict(ndec=260), CONGA=dict(decay=260),
-        COWBELL=dict(hz=900, decay=160))),
-    ("AFRO", "AFROBEAT", 0, kit(K808,
-        KICK=S("sine", 60, 10, 30, 6, 260, 120, click=20, filt=("lp", 2000, .1, "all")),
-        SNARE=S("tri", 330, 3, 10, 0, 60, 92, 1.5, 50, 30, "white", 70, 0, 60, ("bp", 5000, .3)),
-        CONGA=dict(decay=260, bend=2), TOMLO=S("sine", 160, 2, 20, 6, 260, 114, click=20),
-        TOMHI=S("sine", 230, 2, 20, 6, 220, 112, click=20), SHAKER=dict(ndec=80, nlev=100),
-        COWBELL=dict(hz=900, decay=180))),
-    ("LATIN", "LATIN", 0, kit(KCR78,
-        KICK=S("sine", 62, 6, 20, 6, 230, 116, click=16, filt=("lp", 1800, .1, "all")),
-        TOMLO=S("sine", 200, 3, 15, 4, 200, 114, 1.6, 40, 40, "white", 26, 0, 15, ("bp", 4000, .3)),   # timbales
-        TOMHI=S("sine", 300, 3, 15, 4, 180, 114, 1.6, 40, 40, "white", 26, 0, 15, ("bp", 4500, .3)),
-        CONGA=dict(hz=330, decay=240, click=30), COWBELL=dict(hz=650, decay=240),
-        CLAVE=dict(hz=2400, decay=55))),
+    # -- NKJH (docs/NKJH-SPEC.md 1): five kits in the places of five world kits (the kit numbers, and the user kits'
+    #    after them, stay as they were)
+    ("GABBER", "GABBER", 0, kit(K909,                                      # the Rotterdam kick: a 909 driven to a square
+        KICK=S("sine", 56, 36, 30, 24, 560, 127, click=110, drive=127, src="white", nlev=50, ndec=8,
+               filt=("lp", 6000, .1)),
+        KICK2=S("sine", 60, 30, 20, 10, 300, 127, click=127, drive=127),              # the short one, for rolls
+        SNARE=dict(drive=120, ndec=240), CLAP=dict(nlev=127, ndec=320, hpf=900),
+        CHH=dict(ndec=45), OHH=dict(ndec=420), CRASH=dict(ndec=2000))),
+    ("EBM", "EBM", 0, kit(K606,                                            # dry, tight, gated: body music
+        KICK=S("sine", 58, 14, 18, 4, 180, 124, click=60, drive=40),
+        KICK2=S("sine", 52, 10, 20, 4, 260, 124, click=40, drive=60),
+        SNARE=S("tri", 210, 5, 12, 0, 90, 96, 1.6, 70, 30, "white", 120, 30, 120, ("hp", 1800, .15), drive=40),
+        SNARE2=S("tri", 260, 4, 10, 0, 60, 90, 1.6, 60, 40, "white", 116, 20, 80, ("bp", 4500, .3), drive=30),
+        CLAP=dict(ndec=150, nlev=124), TOMLO=S("fm", 110, 12, 60, 6, 260, 116, drive=60),
+        TOMHI=S("fm", 165, 12, 60, 6, 220, 114, drive=60))),
+    ("WAREHSE", "WAREHOUSE", 0, kit(K909,                                  # rumble: long, low, filtered
+        KICK=S("sine", 48, 20, 30, 30, 900, 124, click=40, drive=70, filt=("lp", 900, .2, "all")),
+        KICK2=S("sine", 42, 12, 60, 60, 1800, 124, click=10, drive=90, filt=("lp", 500, .3, "all")),   # the rumble
+        CHH=dict(src="metal", ndec=50), OHH=dict(src="metal", ndec=420),
+        RIDE=dict(ndec=1800), CLAP=dict(ndec=420, filt=("bp", 1000, .4)))),
+    ("NOISE", "NOISE", 0x23, kit(K909,                                     # everything noise, crushed (3 bits, S&H 3)
+        KICK=S("square", 50, 24, 30, 6, 300, 120, click=127, drive=127),
+        KICK2=S("square", 45, 30, 40, 10, 500, 120, click=127, drive=127, src="white", nlev=60, ndec=40),
+        SNARE=S(None, src="white", nlev=127, ndec=200, filt=("bp", 2000, .6), drive=127),
+        SNARE2=S(None, src="chip", chip=3000, nlev=124, ndec=160, drive=100),
+        CLAP=dict(nlev=127, ndec=360, drive=100), CHH=S(None, src="chip", chip=9000, nlev=110, ndec=40),
+        OHH=S(None, src="chip", chip=8000, nlev=106, nhold=20, ndec=380))),
     ("TRIBAL", "TRIBAL", 0, kit(K808,
         KICK=S("sine", 52, 14, 60, 10, 600, 124, click=30, src="white", nlev=30, ndec=10, filt=("lp", 1500, .2)),
         SNARE=S("sine", 160, 6, 30, 6, 260, 112, 1.6, 50, 30, "white", 40, 0, 60, ("lp", 3000, .2)),
@@ -353,17 +357,18 @@ KITS = [
         CLAP=dict(filt=("bp", 900, .3), ndec=500, nlev=90),
         CHH=dict(nlev=72, ndec=70, filt=("bp", 7000, .3), hpf=6000), OHH=dict(nlev=72, ndec=900),
         CRASH=dict(nlev=84, ndec=3500), RIDE=dict(nlev=64, ndec=2500, filt=("bp", 6000, .5)))),
-    ("JAZZ", "JAZZ", 0, kit(K808,
-        KICK=S("sine", 62, 8, 20, 4, 230, 100, click=24, src="white", nlev=30, ndec=8, filt=("lp", 1200, .1)),
-        KICK2=S("sine", 70, 6, 16, 4, 160, 96, click=30, src="white", nlev=30, ndec=6, filt=("lp", 1400, .1)),
-        SNARE=S("tri", 210, 2, 10, 0, 60, 40, src="white", nlev=92, nhold=30, ndec=320,     # brushes
-                filt=("bp", 3500, .2)),
-        SNARE2=S("tri", 220, 3, 10, 0, 90, 80, 1.6, 50, 40, "white", 100, 0, 150, ("bp", 2800, .25)),
-        CHH=S(None, 300, src="cym", nlev=82, ndec=60, filt=("bp", 8000, .3), hpf=5000),
-        OHH=S(None, 300, src="cym", nlev=82, nhold=10, ndec=500, filt=("bp", 7500, .3), hpf=4500),
-        RIDE=S(None, 320, src="cym", nlev=90, ndec=2400, filt=("bp", 6500, .35), hpf=3500, click=16),
-        TOMLO=S("sine", 110, 3, 30, 6, 400, 106, 1.5, 40, 20, "white", 16, 0, 40, ("lp", 2000, .1)),
-        TOMHI=S("sine", 160, 3, 30, 6, 340, 104, 1.5, 40, 20, "white", 16, 0, 40, ("lp", 2500, .1)))),
+    ("RUST", "RUST", 0x01, kit(K909,                                       # metal: chains, sheet steel, pipes
+        KICK=S("fm", 55, 24, 40, 10, 400, 124, drive=110),
+        SNARE=S("bell", 330, 2, 10, 0, 160, 96, src="metal", nlev=116, ndec=220, filt=("bp", 3000, .5), drive=80),
+        SNARE2=S("bell", 450, 0, 5, 0, 120, 92, src="cym", nlev=110, ndec=180, filt=("hp", 2500, .3)),
+        CLAP=S(None, src="metal", nlev=124, ndec=260, filt=("bp", 2400, .7), hpf=1200),
+        CHH=S(None, 320, src="metal", nlev=120, ndec=50, filt=("bp", 11000, .7), hpf=8000, click=30),
+        OHH=S(None, 320, src="metal", nlev=114, nhold=20, ndec=600, filt=("bp", 10000, .7), hpf=7000),
+        TOMLO=S("bell", 140, 6, 40, 10, 500, 118, filt=("bp", 900, .6, "all")),
+        TOMHI=S("bell", 210, 6, 40, 10, 420, 116, filt=("bp", 1400, .6, "all")),
+        CRASH=S(None, 260, src="metal", nlev=118, nhold=20, ndec=2600, filt=("hp", 3800, .4)),
+        COWBELL=S("bell", 780, 0, 5, 10, 600, 110, filt=("bp", 3200, .7, "all")),
+        CLAVE=S("bell", 1900, 0, 5, 0, 90, 108, click=20))),
 ]
 
 

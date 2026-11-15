@@ -130,4 +130,12 @@ Elke stap: bouwen → alle tests groen → commit → pas dan flashen.
   NOIS: STATIC, FURNACE, 1BIT HISS · ACID: ACID BITE, ACID RIP, HOOVER X, WAREHOUSE · BRKN: GLITCH, DEAD MODEM, PIXEL WIRE.
   Achteraan elke enginetabel toegevoegd: SLOOP-presets houden hun nummer. Klankontwerp nog niet beluisterd.
 - Les: CRUSH-insert + snelle toonhoogte-sweep (LOFI SWP) geeft DC-offset. Vermijden in presets.
+- Fase 1, stap 3: vijf NKJH-drumkits op de plaats van vijf wereldkits (het aantal blijft 32, dus de USR- en
+  SYN-kits houden hun nummer): DEMBOW → **GABBER**, AMAPIANO → **EBM**, AFRO → **WAREHSE** (warehouse),
+  LATIN → **NOISE** (gecrusht), JAZZ → **RUST** (metaal). Volume gemeten; de 27 SLOOP-kits bit voor bit gelijk.
+
+## Ideeën voor later
+- **Live boetseren** (gebruiker, 2026-11-15): tijdens REC een witte toets vasthouden en aan een knop draaien,
+  zodat de klank van die noot live wordt opgenomen en vervormd. Bouwt voort op SLOOP's parameter locks.
+  Te plannen na fase 2, samen met een basisarsenaal klanken dat daarvoor gemaakt is.
 
