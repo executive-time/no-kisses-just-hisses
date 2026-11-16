@@ -21,7 +21,6 @@ static struct {
     uint16_t line_i[4], ap_i[2];
     int32_t line_lp[4];
 } fx;
-static int32_t nkjh_sp_fb, nkjh_sp_mix;        /* NKJH SPACE (space_in): the delay's feedback and return, at least */
 static volatile uint8_t rev_frz;         /* punch-in FREEZE (punch.c): the reverb holds, no loss, no damping */
 static int32_t rev_l[CTL], rev_r[CTL];   /* the reverb's own return of this block (FREEZE plays it) */
 
@@ -211,10 +210,6 @@ static void fx_buses(const int32_t *cho_in, const int32_t *dly_in, const int32_t
     if (thr_dly && fb < 89 * 230)                       /* ECHO THROW: FDBK at least 70 %, gliding with it (2.6) */
         fb += ((89 * 230 - fb) * thr_dly) >> 15;
     int32_t dmix = song.g[G_DMIX] * 258;
-    if (nkjh_sp_fb > fb)                                /* NKJH SPACE: the feedback up to past 1 (the int16 line and */
-        fb = nkjh_sp_fb;                                /* its low-pass bound it: it sings, it does not blow up) */
-    if (nkjh_sp_mix > dmix)
-        dmix = nkjh_sp_mix;
     int32_t g = 17000 + song.g[G_RSIZE] * 104, lpk = 32767 - song.g[G_RDAMP] * 200;   /* loop gain (RT60 ~0.4..4 s), damping */
     int32_t frnd = rev_frz ? 128 : 0;                  /* FREEZE: what is in the lines stays there (below: no
                                                          * loss, rounded to nearest; 0: as always, bit for bit) */
@@ -893,7 +888,7 @@ static void crush_process(int32_t *l, int32_t *r, uint32_t n)
     crsh.c = macro_glide(crsh.c, clamp(song.g[G_CRUSH], 0, 127));
     if (!crsh.c)
         return;
-    hold = 1 + crsh.c * 15 / 127, shift = crsh.c * 12 / 127;
+    hold = 1 + crsh.c * 12 / 127, shift = crsh.c * 10 / 127;   /* (the first version's 80 % at the top) */
     for (i = 0; i < n; i++) {
         if (--crsh.hn <= 0) {
             crsh.hn = hold;
@@ -905,27 +900,45 @@ static void crush_process(int32_t *l, int32_t *r, uint32_t n)
     }
 }
 
-/* ---- NKJH SPACE (DESTROY A, KNOB 4): the dry mix sent into the delay and the reverb, the delay's feedback and
- * return raised with it (fx_buses: at least these): a short echo, then a long one, then it sings. 0: nothing.
- * While the transport plays: STOP lets it die away (stopped is silent, as in SLOOP) */
-static int32_t space_s;
-static void space_in(int32_t *sd, int32_t *sr, const int32_t *l, const int32_t *r, uint32_t n)
+/* ---- NKJH FOLD (DESTROY A, KNOB 4): a sine wavefolder: the mix (+-65536 = 1 radian at x1) into sin(), the drive
+ * x1 .. x12 (squared: a gentle start): first a soft rounding of the peaks, then the wave folds back on itself again and
+ * again (metal, harmonics). FOLD_COMP brings the level back, measured on the NKJH default mix through the master
+ * (tests/nkjh_destroy_test.c FOLD_CAL, tools/gen_grit.py): 0 dB up to 50 %, then up to +2.5 dB. 0: not touched */
+static struct { int32_t f; } fold;
+static void fold_process(int32_t *l, int32_t *r, uint32_t n)
 {
-    int32_t snd;
+    int32_t kq, c;
     uint32_t i;
-    space_s = macro_glide(space_s, song.playing ? clamp(song.g[G_SPACE], 0, 127) : 0);   /* (STOP: no more fed, the
-                                                         * delay back to its own feedback: the tail dies, STOP is silence) */
-    if (!space_s) {
-        nkjh_sp_fb = nkjh_sp_mix = 0;
+    fold.f = macro_glide(fold.f, clamp(song.g[G_FOLD], 0, 127));
+    if (!fold.f)
         return;
-    }
-    snd = space_s * 200;                                /* Q15: up to 0.78 of the mix */
-    nkjh_sp_fb = space_s * 262;                         /* Q15: up to 1.015 */
-    nkjh_sp_mix = space_s * 258;
+    kq = 10430 + fold.f * fold.f * 7 + fold.f * fold.f / 9;   /* 2^32 / (2 pi 65536) x (1 + 11 (f / 127)^2) */
+    c = FOLD_COMP[fold.f];
     for (i = 0; i < n; i++) {
-        int32_t m = clamp((l[i] + r[i]) >> 1, -131071, 131071);
-        sd[i] += (m * (snd >> 3)) >> 12;
-        sr[i] += (m * (snd >> 4)) >> 12;
+        int32_t x = clamp(l[i], -131071, 131071), y = clamp(r[i], -131071, 131071);
+        int32_t fl = osc_sine((uint32_t)((int64_t)x * kq)) << 1, fr = osc_sine((uint32_t)((int64_t)y * kq)) << 1;
+        l[i] = (fl * c) >> 12;
+        r[i] = (fr * c) >> 12;
+    }
+}
+
+/* ---- NKJH RING (DESTROY B, KNOB 4): the mix times a sine. Up to 50 % it comes in at 20 .. ~110 Hz (a rough, fast
+ * tremolo turning to growl), from there all of it, the tone climbing to ~1.5 kHz (bells, metal). 0: not touched */
+static struct { int32_t r; uint32_t ph; } ring;
+static void ring_process(int32_t *l, int32_t *r, uint32_t n)
+{
+    int32_t wet;
+    uint32_t i, inc;
+    ring.r = macro_glide(ring.r, clamp(song.g[G_RING], 0, 127));
+    if (!ring.r)
+        return;
+    wet = ring.r >= 64 ? 32767 : ring.r * 512;
+    inc = RING_INC[ring.r];
+    for (i = 0; i < n; i++) {
+        int32_t s = osc_sine(ring.ph), x = l[i], y = r[i];
+        ring.ph += inc;
+        l[i] = x + (int32_t)(((int64_t)((((int64_t)x * s) >> 15) - x) * wet) >> 15);
+        r[i] = y + (int32_t)(((int64_t)((((int64_t)y * s) >> 15) - y) * wet) >> 15);
     }
 }
 
@@ -1308,6 +1321,10 @@ static void mix_block(int32_t *out, uint32_t n)
         thr_rev = (q & 1u) ? (thr_rev + 1928 > 32767 ? 32767 : thr_rev + 1928) : (thr_rev > 1928 ? thr_rev - 1928 : 0);
         thr_dly = (q & 2u) ? (thr_dly + 1928 > 32767 ? 32767 : thr_dly + 1928) : (thr_dly > 1928 ? thr_dly - 1928 : 0);
     }
+    {   /* NKJH PITCH: glides as the pitch bend does (a quarter of the way a block), read by the parts on both cores */
+        int32_t want = clamp(song.g[G_PITCH], -12, 12) * 4096;
+        nkjh_pitch_q += ((want - nkjh_pitch_q) >> 2) + (want > nkjh_pitch_q) - (want < nkjh_pitch_q);
+    }
     events_block(n);
     duck_block(n * (uint32_t)song.g[G_BPM]);
     c1 = cpu1_on() ? units_split() : 0;                 /* core 1's units this block */
@@ -1339,7 +1356,6 @@ static void mix_block(int32_t *out, uint32_t n)
     texture_mix(mix_l, mix_r, n);                       /* GLO > TEXTURE (2.6): the bed, dry; after both cores' units
                                                          * (what it adds does not depend on them: the same sum) */
     punch_freeze_feed(acc[0].sr, mix_l, mix_r, n);     /* punch-in FREEZE: the whole dry mix into the held reverb */
-    space_in(acc[0].sd, acc[0].sr, mix_l, mix_r, n);    /* NKJH DESTROY: SPACE, the dry mix into the delay and reverb */
     fx_buses(acc[0].sc, acc[0].sd, acc[0].sr, wet_l, wet_r, n);
     for (i = 0; i < n; i++) {
         mix_l[i] += wet_l[i];
@@ -1348,9 +1364,11 @@ static void mix_block(int32_t *out, uint32_t n)
     dust_process(mix_l, mix_r, n);
     punch_process(mix_l, mix_r, n);
     djf_process(mix_l, mix_r, n);
-    bite_process(mix_l, mix_r, n);                      /* NKJH DESTROY: BITE into GRIT into CRUSH */
+    bite_process(mix_l, mix_r, n);                      /* NKJH DESTROY: BITE, GRIT, FOLD, CRUSH, RING */
     grit_process(mix_l, mix_r, n);
+    fold_process(mix_l, mix_r, n);
     crush_process(mix_l, mix_r, n);
+    ring_process(mix_l, mix_r, n);
     m1 = (int32_t)song.master_q12;
     m0 = master_cur < 0 ? m1 : master_cur;
     master_cur = m1;

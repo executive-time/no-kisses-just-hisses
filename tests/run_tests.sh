@@ -79,7 +79,7 @@ run "the screen font at 1 bit a pixel: every glyph, the same pixels as 2.5" "$OU
 $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/nkjh_grit_test" tests/nkjh_grit_test.c -lm
 run "NKJH GRIT (DESTROY, KNOB 1): 0 untouched, level within 3 dB to 50 %, bounded, more squashed, kept in a project" "$OUT/nkjh_grit_test"
 $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/nkjh_destroy_test" tests/nkjh_destroy_test.c -lm
-run "NKJH DESTROY: BITE, CRUSH, SPACE, REPEAT, GRAIN, CHAOS (0 untouched, levels, bounded, zones, kicks kept, project)" "$OUT/nkjh_destroy_test"
+run "NKJH DESTROY: BITE, CRUSH, FOLD, PITCH, GRAIN, CHAOS, RING (0 untouched, levels, bounded, octaves, kicks kept, project)" "$OUT/nkjh_destroy_test"
 $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/punch_test" tests/punch_test.c -lm
 run "punch-in FX: 27 effects (11 on the black keys), bounded, dry after release, FX-held keys" "$OUT/punch_test" "$OUT/punch-fx.wav"
 $CC -O2 -w -Ibuild/gen -Ifirmware/src -o "$OUT/fx251_test" tests/fx251_test.c -lm

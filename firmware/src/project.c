@@ -41,7 +41,7 @@
                                                 * so the format and its size do not change */
 _Static_assert(G_DRDLY == PROJ_NG && G_TXSRC == PROJ_NG + 5u,
                "the globals a project holds, then G_DRDLY (then 2.6's GLO > MIDI: settings of the FM-1)");
-_Static_assert(G_FXFADE == G_CLKOUT + 1u && G_GRIT == G_FXFADE + 1u && G_COUNT == G_GRIT + 7u,
+_Static_assert(G_FXFADE == G_CLKOUT + 1u && G_GRIT == G_FXFADE + 1u && G_COUNT == G_GRIT + 8u,
                "G_FXFADE (2.7.2) is the last SLOOP global, a setting of the FM-1; then NKJH's G_GRIT");
 #define PROJ_NC6 ((uint32_t)P_ITYPE)           /* format 6: the parameters kept in 16 bits, P_LEVEL .. P_VLEAD (as 5), */
 #define PROJ_NX6 ((uint32_t)(P_E0 - P_ITYPE))  /* the 2.6 ones in a byte (0..127), then P_E0 .. P_E7 */
@@ -459,8 +459,8 @@ static void drum_tw_get(const project_t *p)
 }
 
 /* NKJH: the DESTROY macros ride in the slots of four GO buttons (a project never loads them; SLOOP saves them as 0):
- * g[G_LOAD] NKJH_MARK | GRIT | BITE << 7, g[G_CLRSEQ] CRUSH | SPACE << 7, g[G_INITSND] REPEAT | GRAIN << 7,
- * g[G_NEWPRJ] CHAOS. Without the mark (a SLOOP project): every macro at 0 */
+ * g[G_LOAD] NKJH_MARK | GRIT | BITE << 7, g[G_CLRSEQ] CRUSH | FOLD << 7, g[G_INITSND] PITCH + 64 | GRAIN << 7,
+ * g[G_NEWPRJ] CHAOS | RING << 7. Without the mark (a SLOOP project): every macro at 0 */
 #define NKJH_MARK 0x4000
 UI_SMALL static void proj_capture(project_t *p)        /* what is playing now, as a project */
 {
@@ -486,9 +486,9 @@ UI_SMALL static void proj_capture(project_t *p)        /* what is playing now, a
     }
     drum_tw_put(p);                                     /* (2.7) the drum sounds' TUNE and DECAY */
     p->g[G_LOAD] = (int16_t)(NKJH_MARK | (song.g[G_GRIT] & 127) | (song.g[G_BITE] & 127) << 7);   /* NKJH: DESTROY */
-    p->g[G_CLRSEQ] = (int16_t)((song.g[G_CRUSH] & 127) | (song.g[G_SPACE] & 127) << 7);
-    p->g[G_INITSND] = (int16_t)((song.g[G_REPEAT] & 127) | (song.g[G_GRAIN] & 127) << 7);
-    p->g[G_NEWPRJ] = (int16_t)(song.g[G_CHAOS] & 127);
+    p->g[G_CLRSEQ] = (int16_t)((song.g[G_CRUSH] & 127) | (song.g[G_FOLD] & 127) << 7);
+    p->g[G_INITSND] = (int16_t)(((song.g[G_PITCH] + 64) & 127) | (song.g[G_GRAIN] & 127) << 7);
+    p->g[G_NEWPRJ] = (int16_t)((song.g[G_CHAOS] & 127) | (song.g[G_RING] & 127) << 7);
     p->sum = proj_sum(p);
 }
 
@@ -510,10 +510,11 @@ static void proj_apply(const project_t *p, int all)
         song.g[G_GRIT] = (int16_t)(nk ? p->g[G_LOAD] & 127 : 0);
         song.g[G_BITE] = (int16_t)(nk ? (p->g[G_LOAD] >> 7) & 127 : 0);
         song.g[G_CRUSH] = (int16_t)(nk ? p->g[G_CLRSEQ] & 127 : 0);
-        song.g[G_SPACE] = (int16_t)(nk ? (p->g[G_CLRSEQ] >> 7) & 127 : 0);
-        song.g[G_REPEAT] = (int16_t)(nk ? p->g[G_INITSND] & 127 : 0);
+        song.g[G_FOLD] = (int16_t)(nk ? (p->g[G_CLRSEQ] >> 7) & 127 : 0);
+        song.g[G_PITCH] = (int16_t)(nk ? clamp((p->g[G_INITSND] & 127) - 64, -12, 12) : 0);
         song.g[G_GRAIN] = (int16_t)(nk ? (p->g[G_INITSND] >> 7) & 127 : 0);
         song.g[G_CHAOS] = (int16_t)(nk ? p->g[G_NEWPRJ] & 127 : 0);
+        song.g[G_RING] = (int16_t)(nk ? (p->g[G_NEWPRJ] >> 7) & 127 : 0);
     }
     proj_tx_get(p);                                     /* GLO > TEXTURE (2.6): a load and a section */
     drum_tw_get(p);                                     /* (2.7) the drum sounds' TUNE and DECAY: a load and a section */

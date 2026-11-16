@@ -25,8 +25,8 @@ static const uint8_t LAYER_BTN[LY_COUNT] = {NB, B_FX, B_EDIT, B_ARP, B_SEQ, B_SC
 static const char *const LAYER_NAME[LY_COUNT] = {"", "punch", "erase", "roll", "steps", "destroy", "mix", "song"};
 /* NKJH DESTROY (SEL held): the four knobs' globals on page A and B (docs/NKJH-SPEC.md 4) */
 static uint8_t destroy_page;                            /* 0 = A, 1 = B (SELECT while SEL is held) */
-static const uint8_t DESTROY_ID[2][4] = {{G_GRIT, G_BITE, G_CRUSH, G_SPACE}, {G_REPEAT, G_GRAIN, G_CHAOS, G_FILT}};
-static const char *const DESTROY_LAB[2][4] = {{"grit", "bite", "crush", "space"}, {"repeat", "grain", "chaos", "filter"}};
+static const uint8_t DESTROY_ID[2][4] = {{G_GRIT, G_BITE, G_CRUSH, G_FOLD}, {G_PITCH, G_GRAIN, G_CHAOS, G_RING}};
+static const char *const DESTROY_LAB[2][4] = {{"grit", "bite", "crush", "fold"}, {"pitch", "grain", "chaos", "ring"}};
 static void section_store(uint32_t s);                  /* project.c */
 static void section_load(uint32_t s);
 static uint8_t sec_armed;                               /* store over a used section: the key again within 3 s */
@@ -552,8 +552,8 @@ UI_SMALL static void layer_knobs(uint32_t layer)
         case LY_SCALE: {                                /* NKJH: the DESTROY layer, page A or B (SELECT); key, scale and
                                                          * chord: the SEL page (SEL tapped) */
             int16_t *v = &song.g[DESTROY_ID[destroy_page][k]];
-            if (DESTROY_ID[destroy_page][k] == G_FILT)
-                *v = (int16_t)clamp(*v + s, GP[G_FILT].min, GP[G_FILT].max);
+            if (DESTROY_ID[destroy_page][k] == G_PITCH)       /* (a semitone a detent) */
+                *v = (int16_t)clamp(*v + (s > 0 ? 1 : -1), -12, 12);
             else
                 *v = (int16_t)clamp(*v + accel(EN_K1 + k, s, 127), 0, 127);
             break;
@@ -948,10 +948,13 @@ UI_SMALL static void layer_screen_draw(void)
         for (i = 0; i < 4u; i++) {
             uint32_t id = DESTROY_ID[destroy_page][i];
             lab[i] = DESTROY_LAB[destroy_page][i];
-            if (id == G_FILT) {
-                const char *u;
-                param_format(&GP[G_FILT], song.g[G_FILT], v[i], &u);
-                ratio[i] = (song.g[G_FILT] - GP[G_FILT].min) * 1000 / (GP[G_FILT].max - GP[G_FILT].min);
+            if (id == G_PITCH) {
+                if (song.g[G_PITCH] > 0)
+                    str_cpy(v[i], "+", 2);
+                else
+                    v[i][0] = 0;
+                fmt_int(v[i] + str_len(v[i]), song.g[G_PITCH]);
+                ratio[i] = (song.g[G_PITCH] + 12) * 1000 / 24;
             } else {
                 fmt_int(v[i], song.g[id] * 100 / 127);
                 str_cpy(v[i] + str_len(v[i]), "%", 2);

@@ -206,10 +206,11 @@ static const param_desc_t GP[G_COUNT] = {
     [G_GRIT] = PD("GRIT", F_PCT, 0, 127, 0),      /* NKJH: the DESTROY layer, KNOB 1 (fx.c grit_process) */
     [G_BITE] = PD("BITE", F_PCT, 0, 127, 0),      /* NKJH DESTROY A, KNOB 2 (fx.c bite_process) */
     [G_CRUSH] = PD("CRUSH", F_PCT, 0, 127, 0),    /* NKJH DESTROY A, KNOB 3 (fx.c crush_process) */
-    [G_SPACE] = PD("SPACE", F_PCT, 0, 127, 0),    /* NKJH DESTROY A, KNOB 4 (fx.c space_in, fx_buses) */
-    [G_REPEAT] = PD("REPEAT", F_PCT, 0, 127, 0),  /* NKJH DESTROY B, KNOB 1 (punch.c nkjh_macro_fx) */
+    [G_FOLD] = PD("FOLD", F_PCT, 0, 127, 0),      /* NKJH DESTROY A, KNOB 4 (fx.c fold_process) */
+    [G_PITCH] = PD("PITCH", F_SEMI, -12, 12, 0),  /* NKJH DESTROY B, KNOB 1: the synth parts, semitones (voice.c) */
     [G_GRAIN] = PD("GRAIN", F_PCT, 0, 127, 0),    /* NKJH DESTROY B, KNOB 2 (punch.c nkjh_macro_fx) */
     [G_CHAOS] = PD("CHAOS", F_PCT, 0, 127, 0),    /* NKJH DESTROY B, KNOB 3 (seq.c chaos_vel, drum_step) */
+    [G_RING] = PD("RING", F_PCT, 0, 127, 0),      /* NKJH DESTROY B, KNOB 4 (fx.c ring_process) */
     [G_FXFADE] = PD("FADE", F_INT, 0, 15, 0),     /* 2.7.2: the punch-in FX fade (FX layer SELECT), 0 off .. 15 (punch.c) */
 };
 

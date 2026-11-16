@@ -110,10 +110,13 @@ enum {                          /* global parameters */
                                  * before) .. 15 (punch.c; a setting of the FM-1, kept in BEND's byte) */
     G_GRIT,                     /* NKJH, the DESTROY layer (SEL held), KNOB 1: GRIT, the whole mix driven into the tanh
                                  * (fx.c grit_process); a project keeps it in G_LOAD's slot (project.c proj_capture) */
-    G_BITE, G_CRUSH, G_SPACE,   /* NKJH DESTROY page A, KNOB 2..4: resonant bite, bits / rate, delay + reverb (fx.c) */
-    G_REPEAT, G_GRAIN, G_CHAOS, /* NKJH DESTROY page B, KNOB 1..3: loop repeat, freeze (punch.c), variation (seq.c) */
+    G_BITE, G_CRUSH, G_FOLD,    /* NKJH DESTROY page A, KNOB 2..4: resonant bite, bits / rate, wavefolder (fx.c) */
+    G_PITCH, G_GRAIN, G_CHAOS,  /* NKJH DESTROY page B, KNOB 1..3: the synth parts' pitch -12..+12 (voice.c), freeze
+                                 * (punch.c), variation (seq.c) */
+    G_RING,                     /* NKJH DESTROY page B, KNOB 4: ring modulator (fx.c) */
     G_COUNT
 };
+static int32_t nkjh_pitch_q;    /* NKJH PITCH as it glides, 1/4096 semitone (fx.c mix_block sets it, voice.c adds it) */
 
 /* ----------------------------------------------------------- voices --- */
 typedef struct {

@@ -228,18 +228,14 @@ static void punch_freeze_feed(int32_t *rev, const int32_t *l, const int32_t *r, 
                                                          * mulq15(rev_in, 13000): no overflow) */
 }
 
-/* NKJH DESTROY B: with no key held, REPEAT (KNOB 1) holds a loop on the grid: off below 16, then 1/4, 1/8, 1/16,
- * 1/32 as it turns; else GRAIN (KNOB 2) holds FREEZE, mixed in up to 50 %, all of it past. A key (FX + key, MIDI FX
- * CH) always wins. Only while the transport plays */
+/* NKJH DESTROY B: with no key held, GRAIN (KNOB 2) holds FREEZE, mixed in up to 50 %, all of it past. A key (FX +
+ * key, MIDI FX CH) always wins. Only while the transport plays */
 static void nkjh_macro_fx(int32_t *want, int32_t *depth)
 {
-    int32_t rp = song.g[G_REPEAT], gr = song.g[G_GRAIN];
+    int32_t gr = song.g[G_GRAIN];
     if (!song.playing)
         return;                                         /* (while the transport plays: STOP is silence, as in SLOOP) */
-    if (rp >= 16) {
-        *want = rp < 48 ? PX_LOOP4 : rp < 80 ? PX_LOOP8 : rp < 112 ? PX_LOOP16 : PX_LOOP32;
-        *depth = 32767;
-    } else if (gr > 0) {
+    if (gr > 0) {
         *want = PX_FREEZE;
         *depth = gr >= 64 ? 32767 : gr * 512;
     }
@@ -251,7 +247,7 @@ static void punch_process(int32_t *l, int32_t *r, uint32_t n)
     uint32_t i;
     int32_t want = punch.req, pstep, mdepth = 32767;
     if (want < 0)
-        nkjh_macro_fx(&want, &mdepth);                  /* NKJH: no key held: REPEAT, else GRAIN (DESTROY B) */
+        nkjh_macro_fx(&want, &mdepth);                  /* NKJH: no key held: GRAIN (DESTROY B) */
     uint32_t beat, step, echo_d, binc, fdec;
     static int32_t kl[CTL], kr[CTL];                    /* (static: the ISR stack is small) */
     tsvf_t c1, c2;

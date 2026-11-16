@@ -77,8 +77,8 @@ via **SEL tikken** (de SEL-pagina's); de oude SEL-laag (vasthouden) vervalt. FX 
 
 | Pagina | KNOB 1 | KNOB 2 | KNOB 3 | KNOB 4 |
 | --- | --- | --- | --- | --- |
-| **A** | **GRIT** | **BITE** | **CRUSH** | **SPACE** |
-| **B** | **REPEAT** | **GRAIN** | **CHAOS** | **FILT** (DJ-filter) |
+| **A** | **GRIT** | **BITE** | **CRUSH** | **FOLD** |
+| **B** | **PITCH** | **GRAIN** | **CHAOS** | **RING** |
 
 | Macro | 0 → 50 % (bruikbaar) | 50 → 100 % (ontsporen) | Stuurt intern |
 | --- | --- | --- | --- |
@@ -161,6 +161,14 @@ Elke stap: bouwen → alle tests groen → commit → pas dan flashen.
   **STOP is stilte**: SPACE, REPEAT en GRAIN werken alleen terwijl de transport loopt (de stresstest eist het).
   Opslag: g[G_LOAD] merk | GRIT | BITE, g[G_CLRSEQ] CRUSH | SPACE, g[G_INITSND] REPEAT | GRAIN, g[G_NEWPRJ] CHAOS;
   die drie GO-plekken worden niet meer geladen. Tests: tests/nkjh_destroy_test.c (26 controles).
+
+- Fase 2, stap 3 (2026-11-16, na het luisteren): GRIT, BITE, CRUSH, CHAOS en GRAIN goed. CRUSH herschaald (100 % =
+  het oude 80 %). SPACE, REPEAT en de DJ-filterknop eruit. Nieuw: **PITCH** (B1) ±12 halve tonen, een per klik, op de
+  drie synthtracks samen via de pitchbend-route (ook klinkende noten, glijdt als de bend; drums ongemoeid).
+  **FOLD** (A4) sinus-wavefolder, drive x1..x12 kwadratisch, niveau gekalibreerd (tools/fold_cal.txt).
+  **RING** (B4) ringmodulator: tot 50 % mengt hij in op 20..110 Hz, daarna vol, toon tot 1,5 kHz.
+  Masterketen: DUST → punch-in → DJ-filter → BITE → GRIT → FOLD → CRUSH → RING → MASTER → limiter.
+  Opslag: g[G_CLRSEQ] CRUSH | FOLD, g[G_INITSND] PITCH+64 | GRAIN, g[G_NEWPRJ] CHAOS | RING.
 
 ## Ideeën voor later
 - **Live boetseren** (gebruiker, 2026-11-15): tijdens REC een witte toets vasthouden en aan een knop draaien,

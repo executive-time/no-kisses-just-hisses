@@ -448,14 +448,14 @@ int main(int argc, char **argv)
     {
         int16_t bpm = song.g[G_BPM];
         encs[panel.enc[EN_SELECT]] = 1; frame();
-        encs[panel.enc[EN_K1]] = 30; encs[panel.enc[EN_K3]] = 10; frame();
-        check(song.g[G_BPM] == bpm && song.g[G_REPEAT] > 0 && song.g[G_CHAOS] > 0,
-              "NKJH: SEL + SELECT right: DESTROY page B (KNOB 1 REPEAT, KNOB 3 CHAOS), the tempo left alone");
+        encs[panel.enc[EN_K1]] = 30; frame(); encs[panel.enc[EN_K1]] = 1; frame(); encs[panel.enc[EN_K3]] = 10; frame();
+        check(song.g[G_BPM] == bpm && song.g[G_PITCH] == 2 && song.g[G_CHAOS] > 0,
+              "NKJH: SEL + SELECT right: DESTROY page B (KNOB 1 PITCH a semitone a turn, KNOB 3 CHAOS), the tempo left alone");
         ui.force = 1; frame(); ppm("layer-destroy-b");
         encs[panel.enc[EN_SELECT]] = -1; frame();
         encs[panel.enc[EN_K2]] = 10; encs[panel.enc[EN_K4]] = 10; frame();
-        check(song.g[G_BITE] > 0 && song.g[G_SPACE] > 0, "NKJH: SEL + SELECT left: page A (KNOB 2 BITE, KNOB 4 SPACE)");
-        song.g[G_REPEAT] = song.g[G_CHAOS] = song.g[G_BITE] = song.g[G_SPACE] = 0;
+        check(song.g[G_BITE] > 0 && song.g[G_FOLD] > 0, "NKJH: SEL + SELECT left: page A (KNOB 2 BITE, KNOB 4 FOLD)");
+        song.g[G_PITCH] = song.g[G_CHAOS] = song.g[G_BITE] = song.g[G_FOLD] = 0;
     }
     song.g[G_GRIT] = 0;
     release(B_SCL);
