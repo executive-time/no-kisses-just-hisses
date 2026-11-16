@@ -70,7 +70,8 @@ delay met feedback (via SPACE). Alles vóór de bestaande limiter, die clipping 
 
 ## 4. DESTROY: zeven macro's
 **Bediening:** houd **SEL** vast: de vier draaiknoppen worden macro's. Een eigen laag, los van FX: met de ene hand
-de punch-ins (FX + toets), met de andere de macro's. **SEL + OCT+** wisselt tussen pagina A en B. De toetsen in de
+de punch-ins (FX + toets), met de andere de macro's. **SEL + SELECT** draaien wisselt tussen pagina A (links) en B
+(rechts); het tempo blijft dan staan. De toetsen in de
 SEL-laag zijn vrij voor later (bijvoorbeeld macro-snapshots). Toonsoort, toonladder en akkoorden blijven bereikbaar
 via **SEL tikken** (de SEL-pagina's); de oude SEL-laag (vasthouden) vervalt. FX blijft zoals in SLOOP.
 
@@ -90,8 +91,9 @@ via **SEL tikken** (de SEL-pagina's); de oude SEL-laag (vasthouden) vervalt. FX 
 | CHAOS | kleine variaties | breakcore | zie §5 (sequencer) |
 
 Regels voor elke macro: positie 0 = exact het geluid zonder macro (de test vergelijkt het). Het niveau
-blijft ongeveer gelijk (±3 dB) tot 50 %. De knop glijdt (geen zipper-ruis). De waarden worden per
-song-sectie (A–D) bewaard en zijn per step te locken.
+blijft ongeveer gelijk (±3 dB) tot 50 %. De knop glijdt (geen zipper-ruis). De waarden worden per project
+bewaard, zoals SLOOP's masterbus (DUST, DUCK, FILT): een sectiewissel zet je knopstand live niet terug.
+Per step locken komt later (het zijn globale waarden, geen trackparameters).
 
 ## 5. Groove engine
 - **PROBABILITY per step**: in het bestaande step-blad (SEQ + step + OCT+ vasthouden) komt een rij
@@ -141,6 +143,24 @@ Elke stap: bouwen → alle tests groen → commit → pas dan flashen.
   OCT UP, FLANGER, LOOP 8T, WOBBLE, PHONE, AUTO-PAN, MONO. De effecten houden hun nummer (editor, MIDI FX CH).
 - Fase 1, stap 6: VOICE, WHEEL en PHYS onbereikbaar (de engineknop slaat ze over). De code fysiek verwijderen
   (±4,4 KB werkgeheugen: PHYS is het grootste deel van de engine-arena) gebeurt aan het begin van fase 4.
+
+- Fase 2, stap 1: **GRIT** op SEL + KNOB 1 (de laag heet nu *destroy*). De hele mix na het DJ-filter, /4 de
+  tanh in (drive x1 .. x28,6), gecompenseerd op de NKJH-startmix (tests/nkjh_grit_test.c, tools/grit_cal.txt):
+  0 = bit voor bit onaangeroerd; tot 25 % warm (crest 2,84 → 2,7); 38–50 % bijt; 75–100 % bijna blokgolf
+  (crest 1,2), niveau 0 dB tot 50 % en +2,5 dB op 100 %. KNOB 2–4 houden voorlopig SCALE / KEYS / TRANSP en
+  de toetsen kiezen nog de toonsoort, tot BITE, CRUSH en SPACE er zijn. CHORD staat op de SEL-tikpagina.
+  Opslag: g[G_LOAD] van het projectbestand (een GO-knop, nooit geladen) met merkbit 0x4000.
+
+- Fase 2, stap 2 (2026-11-15): de andere zes macro's. Keten van de master: DUST → punch-in → DJ-filter → **BITE**
+  (resonante banddoorlaat erbij, 430 Hz → 2,9 kHz) → **GRIT** → **CRUSH** (sample-and-hold tot ~2,8 kHz, tot 12 bits
+  minder, afronding naar 0) → MASTER → limiter. **SPACE** stuurt de droge mix naar delay en reverb, feedback tot
+  1,015 (de int16-lijn en zijn laagdoorlaat begrenzen het zingen). **REPEAT** (zones: uit < 16, 1/4, 1/8, 1/16,
+  1/32) en **GRAIN** (FREEZE, half tot 50 %, vol daarboven) gaan via de punch-in machine; een FX-toets wint.
+  **CHAOS**: velocity ±CHAOS/5, vanaf 40 ghost-hats en -snares op lege steps, vanaf 80 vallen niet-kick-hits weg
+  (tot ~28 %); kicks, toonhoogtes en patroonlengte nooit. Nog niet: microtiming en extra ratchets.
+  **STOP is stilte**: SPACE, REPEAT en GRAIN werken alleen terwijl de transport loopt (de stresstest eist het).
+  Opslag: g[G_LOAD] merk | GRIT | BITE, g[G_CLRSEQ] CRUSH | SPACE, g[G_INITSND] REPEAT | GRAIN, g[G_NEWPRJ] CHAOS;
+  die drie GO-plekken worden niet meer geladen. Tests: tests/nkjh_destroy_test.c (26 controles).
 
 ## Ideeën voor later
 - **Live boetseren** (gebruiker, 2026-11-15): tijdens REC een witte toets vasthouden en aan een knop draaien,

@@ -21,6 +21,7 @@ static struct {
     uint16_t line_i[4], ap_i[2];
     int32_t line_lp[4];
 } fx;
+static int32_t nkjh_sp_fb, nkjh_sp_mix;        /* NKJH SPACE (space_in): the delay's feedback and return, at least */
 static volatile uint8_t rev_frz;         /* punch-in FREEZE (punch.c): the reverb holds, no loss, no damping */
 static int32_t rev_l[CTL], rev_r[CTL];   /* the reverb's own return of this block (FREEZE plays it) */
 
@@ -210,6 +211,10 @@ static void fx_buses(const int32_t *cho_in, const int32_t *dly_in, const int32_t
     if (thr_dly && fb < 89 * 230)                       /* ECHO THROW: FDBK at least 70 %, gliding with it (2.6) */
         fb += ((89 * 230 - fb) * thr_dly) >> 15;
     int32_t dmix = song.g[G_DMIX] * 258;
+    if (nkjh_sp_fb > fb)                                /* NKJH SPACE: the feedback up to past 1 (the int16 line and */
+        fb = nkjh_sp_fb;                                /* its low-pass bound it: it sings, it does not blow up) */
+    if (nkjh_sp_mix > dmix)
+        dmix = nkjh_sp_mix;
     int32_t g = 17000 + song.g[G_RSIZE] * 104, lpk = 32767 - song.g[G_RDAMP] * 200;   /* loop gain (RT60 ~0.4..4 s), damping */
     int32_t frnd = rev_frz ? 128 : 0;                  /* FREEZE: what is in the lines stays there (below: no
                                                          * loss, rounded to nearest; 0: as always, bit for bit) */
@@ -808,6 +813,122 @@ static void djf_process(int32_t *l, int32_t *r, uint32_t n)
     djf_run(&djf, &c, r, n, 1);
 }
 
+/* ---- NKJH GRIT (docs/NKJH-SPEC.md 4): the whole mix, after the DJ filter, driven into the tanh (softclip: flat past
+ * tanh(2), the hard clip at the top), its level brought back (GRIT_COMP: the same RMS up to 50 %, then up to +2.5 dB),
+ * a one-pole low-pass that darkens as it rises. GRIT moves at most 2 a block (~1.5 ms each: no zipper). At 0 (and
+ * back at 0) the mix is not touched: bit for bit the sound without it */
+#include "nkjh_grit.h"
+static struct { int32_t g, sl, sr; } grit;
+static void grit_process(int32_t *l, int32_t *r, uint32_t n)
+{
+    int32_t want = clamp(song.g[G_GRIT], 0, 127), d, c, a;
+    uint32_t i;
+    grit.g += want > grit.g ? (want - grit.g > 2 ? 2 : want - grit.g) : -(grit.g - want > 2 ? 2 : grit.g - want);
+    if (!grit.g) {
+        grit.sl = grit.sr = 0;
+        return;
+    }
+    d = GRIT_DRIVE[grit.g], c = GRIT_COMP[grit.g], a = GRIT_TONE[grit.g];
+    for (i = 0; i < n; i++) {
+        int32_t x = clamp(l[i], -65535, 65535), y = clamp(r[i], -65535, 65535);   /* (16383 x 116999 < 2^31) */
+        x = (softclip(((x >> 2) * d) >> 12) * c) >> 10;   /* the mix / 4 into the curve (the mix before MASTER peaks well
+                                                          * past 32768: at x1 it would already be squashed), x 4 out */
+        y = (softclip(((y >> 2) * d) >> 12) * c) >> 10;
+        grit.sl += ((x - grit.sl) * a) >> 15;
+        grit.sr += ((y - grit.sr) * a) >> 15;
+        l[i] = grit.sl;
+        r[i] = grit.sr;
+    }
+}
+
+/* NKJH: a macro's value moves at most 2 a block (no zipper) */
+static int32_t macro_glide(int32_t cur, int32_t want)
+{
+    return want > cur ? (want - cur > 2 ? cur + 2 : want) : (cur - want > 2 ? cur - 2 : want);
+}
+
+/* ---- NKJH BITE (DESTROY A, KNOB 2): a resonant band-pass (the SVF's band output) added to the mix, its centre
+ * from ~430 Hz up to ~2.9 kHz and its resonance rising with it: more mid bite, then squeal. Its level brought back
+ * (BITE_COMP). 0: not touched */
+static struct { int32_t b, z[4]; } bite;
+static inline int32_t svf_bp(const tsvf_t *c, int32_t in, int32_t *ic1, int32_t *ic2)
+{
+    int32_t v3 = in - *ic2;
+    int32_t v1 = (c->a1 * *ic1 + c->a2 * v3) >> 13;
+    int32_t v2 = *ic2 + ((c->a2 * *ic1 + c->a3 * v3) >> 13);
+    *ic1 = clamp(2 * v1 - *ic1, -150000, 150000);
+    *ic2 = clamp(2 * v2 - *ic2, -150000, 150000);
+    return v1;
+}
+#define BITE_GAIN(b) ((b) * 12000 / 127)               /* Q12: the band added, 0 .. x2.9 */
+#define BITE_COMP(b) (4096 * 4096 / (4096 + BITE_GAIN(b) * 2 / 5))   /* Q12: the level back */
+static void bite_process(int32_t *l, int32_t *r, uint32_t n)
+{
+    tsvf_t c;
+    int32_t k, cp;
+    uint32_t i;
+    bite.b = macro_glide(bite.b, clamp(song.g[G_BITE], 0, 127));
+    if (!bite.b) {
+        bite.z[0] = bite.z[1] = bite.z[2] = bite.z[3] = 0;
+        return;
+    }
+    tsvf_coef(&c, (55 << 8) + bite.b * 37 * 256 / 127, 30 + bite.b * 92 / 127);
+    k = BITE_GAIN(bite.b), cp = BITE_COMP(bite.b);
+    for (i = 0; i < n; i++) {
+        int32_t x = clamp(l[i], -131071, 131071), y = clamp(r[i], -131071, 131071);
+        int32_t bl = svf_bp(&c, x >> 1, &bite.z[0], &bite.z[1]), br = svf_bp(&c, y >> 1, &bite.z[2], &bite.z[3]);
+        l[i] = (int32_t)(((int64_t)(x + ((bl * k) >> 11)) * cp) >> 12);
+        r[i] = (int32_t)(((int64_t)(y + ((br * k) >> 11)) * cp) >> 12);
+    }
+}
+
+/* ---- NKJH CRUSH (DESTROY A, KNOB 3): sample and hold (down to ~2.8 kHz) and fewer bits (up to 12 dropped),
+ * rounded toward 0 (crush_bits: no DC). 0: not touched */
+static struct { int32_t c, hn, hl, hr; } crsh;
+static int32_t crush_bits(int32_t v, int32_t shift);
+static void crush_process(int32_t *l, int32_t *r, uint32_t n)
+{
+    int32_t hold, shift;
+    uint32_t i;
+    crsh.c = macro_glide(crsh.c, clamp(song.g[G_CRUSH], 0, 127));
+    if (!crsh.c)
+        return;
+    hold = 1 + crsh.c * 15 / 127, shift = crsh.c * 12 / 127;
+    for (i = 0; i < n; i++) {
+        if (--crsh.hn <= 0) {
+            crsh.hn = hold;
+            crsh.hl = shift ? crush_bits(l[i], shift) : l[i];
+            crsh.hr = shift ? crush_bits(r[i], shift) : r[i];
+        }
+        l[i] = crsh.hl;
+        r[i] = crsh.hr;
+    }
+}
+
+/* ---- NKJH SPACE (DESTROY A, KNOB 4): the dry mix sent into the delay and the reverb, the delay's feedback and
+ * return raised with it (fx_buses: at least these): a short echo, then a long one, then it sings. 0: nothing.
+ * While the transport plays: STOP lets it die away (stopped is silent, as in SLOOP) */
+static int32_t space_s;
+static void space_in(int32_t *sd, int32_t *sr, const int32_t *l, const int32_t *r, uint32_t n)
+{
+    int32_t snd;
+    uint32_t i;
+    space_s = macro_glide(space_s, song.playing ? clamp(song.g[G_SPACE], 0, 127) : 0);   /* (STOP: no more fed, the
+                                                         * delay back to its own feedback: the tail dies, STOP is silence) */
+    if (!space_s) {
+        nkjh_sp_fb = nkjh_sp_mix = 0;
+        return;
+    }
+    snd = space_s * 200;                                /* Q15: up to 0.78 of the mix */
+    nkjh_sp_fb = space_s * 262;                         /* Q15: up to 1.015 */
+    nkjh_sp_mix = space_s * 258;
+    for (i = 0; i < n; i++) {
+        int32_t m = clamp((l[i] + r[i]) >> 1, -131071, 131071);
+        sd[i] += (m * (snd >> 3)) >> 12;
+        sr[i] += (m * (snd >> 4)) >> 12;
+    }
+}
+
 #include "punch.c"            /* PUNCH-IN FX on the whole mix (FX held + a white key) */
 /* ---- the render units and the second core. A unit is a synth part (mix_part) or the drum track with the
  * metronome (mix_drums); unit k is bit k of a mask, the drums bit NPART. What a unit on core 1 may not share
@@ -1218,6 +1339,7 @@ static void mix_block(int32_t *out, uint32_t n)
     texture_mix(mix_l, mix_r, n);                       /* GLO > TEXTURE (2.6): the bed, dry; after both cores' units
                                                          * (what it adds does not depend on them: the same sum) */
     punch_freeze_feed(acc[0].sr, mix_l, mix_r, n);     /* punch-in FREEZE: the whole dry mix into the held reverb */
+    space_in(acc[0].sd, acc[0].sr, mix_l, mix_r, n);    /* NKJH DESTROY: SPACE, the dry mix into the delay and reverb */
     fx_buses(acc[0].sc, acc[0].sd, acc[0].sr, wet_l, wet_r, n);
     for (i = 0; i < n; i++) {
         mix_l[i] += wet_l[i];
@@ -1226,6 +1348,9 @@ static void mix_block(int32_t *out, uint32_t n)
     dust_process(mix_l, mix_r, n);
     punch_process(mix_l, mix_r, n);
     djf_process(mix_l, mix_r, n);
+    bite_process(mix_l, mix_r, n);                      /* NKJH DESTROY: BITE into GRIT into CRUSH */
+    grit_process(mix_l, mix_r, n);
+    crush_process(mix_l, mix_r, n);
     m1 = (int32_t)song.master_q12;
     m0 = master_cur < 0 ? m1 : master_cur;
     master_cur = m1;

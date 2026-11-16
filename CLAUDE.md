@@ -44,6 +44,12 @@ Claude's shell cannot delete files in this folder, so git leaves lock files behi
    where a table or multiply works. Watch clipping: aggression is intended, crashes and DC are not.
 8. Bring upstream SLOOP fixes in only on purpose (`git fetch upstream`), never a blind merge.
 
+## NKJH additions to know
+- `G_GRIT` (core.h, after SLOOP's last global): fx.c `grit_process`, tables from `tools/gen_grit.py`. If the
+  master chain or the default sounds change, recalibrate (see the script's docstring) and run tests/nkjh_grit_test.c.
+- Project storage for NKJH values: g[G_LOAD] (+ NKJH_MARK), project.c `proj_capture` / `proj_apply`.
+- Web editor mirrors firmware lists (GP globals, EXPECT.gcount, kit names, DSYN_MOCK_KITS): update them together.
+
 ## Baseline (2026-11-15)
 SLOOP v2.8.5 builds and all host tests pass on macOS (Apple silicon). Local fixes vs upstream:
 `tests/editor_host.c` includes `fm1_flash_id.h`; `tests/target_budget.txt` and

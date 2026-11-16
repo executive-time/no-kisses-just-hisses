@@ -108,6 +108,10 @@ enum {                          /* global parameters */
                                  * while SYNC is INT (seq.c clkout_block; a setting of the FM-1, kept in DR MAP's byte) */
     G_FXFADE,                   /* SLOOP 2.7.2, the FX layer (FX held), SELECT: how fast a punch-in FX fades in and out, 0 (instant, as
                                  * before) .. 15 (punch.c; a setting of the FM-1, kept in BEND's byte) */
+    G_GRIT,                     /* NKJH, the DESTROY layer (SEL held), KNOB 1: GRIT, the whole mix driven into the tanh
+                                 * (fx.c grit_process); a project keeps it in G_LOAD's slot (project.c proj_capture) */
+    G_BITE, G_CRUSH, G_SPACE,   /* NKJH DESTROY page A, KNOB 2..4: resonant bite, bits / rate, delay + reverb (fx.c) */
+    G_REPEAT, G_GRAIN, G_CHAOS, /* NKJH DESTROY page B, KNOB 1..3: loop repeat, freeze (punch.c), variation (seq.c) */
     G_COUNT
 };
 

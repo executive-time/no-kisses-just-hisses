@@ -442,9 +442,22 @@ int main(int argc, char **argv)
     press(B_SCL); frames(10);
     key(9);                                           /* D4 */
     check(trk[0].p[P_ROOT] == 2 && trk[1].p[P_ROOT] == 2 && trk[2].p[P_ROOT] == 2, "SEL + D: every part in D");
-    encs[panel.enc[EN_K1]] = 2; frame();
-    check(trk[0].p[P_CHORD] == 2, "SEL + KNOB 1: chords (7TH) on the track");
+    encs[panel.enc[EN_K1]] = 20; frame();
+    check(song.g[G_GRIT] > 0 && trk[0].p[P_CHORD] == 0, "NKJH: SEL + KNOB 1: GRIT (DESTROY), the chord left alone");
     ppm("layer-key");
+    {
+        int16_t bpm = song.g[G_BPM];
+        encs[panel.enc[EN_SELECT]] = 1; frame();
+        encs[panel.enc[EN_K1]] = 30; encs[panel.enc[EN_K3]] = 10; frame();
+        check(song.g[G_BPM] == bpm && song.g[G_REPEAT] > 0 && song.g[G_CHAOS] > 0,
+              "NKJH: SEL + SELECT right: DESTROY page B (KNOB 1 REPEAT, KNOB 3 CHAOS), the tempo left alone");
+        ui.force = 1; frame(); ppm("layer-destroy-b");
+        encs[panel.enc[EN_SELECT]] = -1; frame();
+        encs[panel.enc[EN_K2]] = 10; encs[panel.enc[EN_K4]] = 10; frame();
+        check(song.g[G_BITE] > 0 && song.g[G_SPACE] > 0, "NKJH: SEL + SELECT left: page A (KNOB 2 BITE, KNOB 4 SPACE)");
+        song.g[G_REPEAT] = song.g[G_CHAOS] = song.g[G_BITE] = song.g[G_SPACE] = 0;
+    }
+    song.g[G_GRIT] = 0;
     release(B_SCL);
     press(B_GLO); frames(10);
     key(0); check(trk[0].p[P_MUTE] == 1, "GLO + key 1: track 1 muted");

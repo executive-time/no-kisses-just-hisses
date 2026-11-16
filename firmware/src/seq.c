@@ -2639,6 +2639,25 @@ static void seq_stop(void)
 #endif
 }
 
+/* ---- NKJH CHAOS (DESTROY B, KNOB 3): a little different every time round. Low: the velocities move (+-CHAOS / 5).
+ * From 40: ghost hats and snares on empty steps. From 80: hits that are not a kick drop out (up to ~28 %). The kicks,
+ * the notes' pitches and the pattern's length never change. 0: the sequencer exactly as without it (no random draw) */
+static uint32_t chaos_st = 0x2545F491u;
+static uint32_t chaos_r(void)
+{
+    chaos_st ^= chaos_st << 13;
+    chaos_st ^= chaos_st >> 17;
+    chaos_st ^= chaos_st << 5;
+    return chaos_st;
+}
+static uint32_t chaos_vel(uint32_t v, int32_t c)
+{
+    int32_t j = c / 5;
+    if (j <= 0)
+        return v;
+    return (uint32_t)clamp((int32_t)v + (int32_t)(chaos_r() % (uint32_t)(2 * j + 1)) - j, 1, 127);
+}
+
 /* the velocity of note i of synth step s */
 static uint32_t step_vel(const step_t *s, uint32_t i)
 {
@@ -2716,12 +2735,13 @@ static void seq_step(track_t *t, const step_t *s, uint32_t slen, uint32_t skip)
             skip |= 1u << i;                        /* (a roll plays it) */
     for (i = 0; i < s->n; i++)
         if (!((skip >> i) & 1u)) {
+            uint32_t v = song.g[G_CHAOS] > 0 ? chaos_vel(step_vel(s, i), song.g[G_CHAOS]) : step_vel(s, i);   /* (NKJH) */
             if (slide_in)
-                trk_note_on(t, s->note[i], step_vel(s, i));
+                trk_note_on(t, s->note[i], v);
             else                                    /* (STRUM: a chord's notes one after the other) */
-                trk_note_chord(t, s->note, s->n, i, step_vel(s, i));
+                trk_note_chord(t, s->note, s->n, i, v);
             if (!slide_in || !(mo_set[trk_index(t) % NTRK][s->note[i] >> 5] & (1u << (s->note[i] & 31u))))
-                seq_out_on(t, s->note[i], step_vel(s, i));   /* (a slide into the same note: one MIDI note) */
+                seq_out_on(t, s->note[i], v);       /* (a slide into the same note: one MIDI note) */
         }
     if (slide_in)                                   /* release what is not held over */
         for (i = 0; i < t->seq_n; i++) {
@@ -2745,11 +2765,30 @@ static void seq_step(track_t *t, const step_t *s, uint32_t slen, uint32_t skip)
 static void drum_step(track_t *t, const dstep_t *s, uint32_t skip)
 {
     uint32_t l, m = dstep_mask(s) & ~skip & ~roll_lanes(t) & ~(uint32_t)drum_mute;
+    int32_t c = song.g[G_CHAOS];
     seq_out_track_off(t);                           /* the last step's hits end here */
+    if (c > 0) {                                    /* NKJH CHAOS: ghosts on an empty hat / snare (not muted, not played) */
+        uint32_t free = ~dstep_mask(s) & ~skip & ~roll_lanes(t) & ~(uint32_t)drum_mute;
+        if (c >= 40 && (free & (1u << 4)) && chaos_r() % 1000u < (uint32_t)(c - 40) * 5u) {
+            trk_note_on(t, LANE_NOTE[4], 28u + chaos_r() % 24u);
+            seq_out_on(t, LANE_NOTE[4], 40);
+        }
+        if (c >= 40 && (free & (1u << 2)) && chaos_r() % 1000u < (uint32_t)(c - 40) * 2u) {
+            trk_note_on(t, LANE_NOTE[2], 24u + chaos_r() % 20u);
+            seq_out_on(t, LANE_NOTE[2], 34);
+        }
+    }
     for (l = 0; m; l++, m >>= 1)
         if (m & 1u) {
-            trk_note_on(t, LANE_NOTE[l], lvl_vel(dstep_lvl(s, l), 100));
-            seq_out_on(t, LANE_NOTE[l], lvl_vel(dstep_lvl(s, l), 100));
+            uint32_t v = lvl_vel(dstep_lvl(s, l), 100);
+            if (c > 0) {
+                int kick = l < 2u;                      /* (lanes 0, 1: KICK, KICK 2: never dropped, barely moved) */
+                if (!kick && c >= 80 && chaos_r() % 1000u < (uint32_t)(c - 80) * 6u)
+                    continue;
+                v = chaos_vel(v, kick ? c / 3 : c);
+            }
+            trk_note_on(t, LANE_NOTE[l], v);
+            seq_out_on(t, LANE_NOTE[l], v);
         }
 }
 

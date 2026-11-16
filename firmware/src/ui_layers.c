@@ -22,7 +22,11 @@
  * GLO keys come to the UI through seq.c lk_q. HOLD: REC held clears the track, SAVE held saves the
  * project (a ring fills; let go before and nothing happens). */
 static const uint8_t LAYER_BTN[LY_COUNT] = {NB, B_FX, B_EDIT, B_ARP, B_SEQ, B_SCL, B_GLO, B_SAVE};
-static const char *const LAYER_NAME[LY_COUNT] = {"", "punch", "erase", "roll", "steps", "key", "mix", "song"};
+static const char *const LAYER_NAME[LY_COUNT] = {"", "punch", "erase", "roll", "steps", "destroy", "mix", "song"};
+/* NKJH DESTROY (SEL held): the four knobs' globals on page A and B (docs/NKJH-SPEC.md 4) */
+static uint8_t destroy_page;                            /* 0 = A, 1 = B (SELECT while SEL is held) */
+static const uint8_t DESTROY_ID[2][4] = {{G_GRIT, G_BITE, G_CRUSH, G_SPACE}, {G_REPEAT, G_GRAIN, G_CHAOS, G_FILT}};
+static const char *const DESTROY_LAB[2][4] = {{"grit", "bite", "crush", "space"}, {"repeat", "grain", "chaos", "filter"}};
 static void section_store(uint32_t s);                  /* project.c */
 static void section_load(uint32_t s);
 static uint8_t sec_armed;                               /* store over a used section: the key again within 3 s */
@@ -545,22 +549,15 @@ UI_SMALL static void layer_knobs(uint32_t layer)
                     ui.step_page = (uint8_t)((trk_len(t) - 1u) / 16u);
             }
             break;
-        case LY_SCALE:
-            if (k == 0u) {
-                if (!is_drum(t))
-                    t->p[P_CHORD] = (int16_t)clamp(t->p[P_CHORD] + s, 0, 5);
-            } else if (k == 1u) {
-                uint32_t i;
-                int16_t v = (int16_t)clamp(trk[0].p[P_SCALE] + s, 0, NSCALES - 1);
-                for (i = 0; i < NPART; i++)
-                    trk[i].p[P_SCALE] = v;
-            } else if (k == 2u) {
-                if (!is_drum(t))
-                    t->p[P_QUANT] = (int16_t)clamp(t->p[P_QUANT] + s, 0, 2);
-            } else if (!is_drum(t)) {
-                t->p[P_TRANS] = (int16_t)clamp(t->p[P_TRANS] + s, -24, 24);
-            }
+        case LY_SCALE: {                                /* NKJH: the DESTROY layer, page A or B (SELECT); key, scale and
+                                                         * chord: the SEL page (SEL tapped) */
+            int16_t *v = &song.g[DESTROY_ID[destroy_page][k]];
+            if (DESTROY_ID[destroy_page][k] == G_FILT)
+                *v = (int16_t)clamp(*v + s, GP[G_FILT].min, GP[G_FILT].max);
+            else
+                *v = (int16_t)clamp(*v + accel(EN_K1 + k, s, 127), 0, 127);
             break;
+        }
         case LY_MIX: {
             int16_t *lv = k == TRK_DRUM ? &song.g[G_DRLVL] : &trk[k].p[P_LEVEL];
             *lv = (int16_t)clamp(*lv + accel(EN_K1 + k, s, 127), 0, 127);
@@ -570,6 +567,9 @@ UI_SMALL static void layer_knobs(uint32_t layer)
             break;
         }
     }
+    if (layer == LY_SCALE && (s = panel_enc(EN_SELECT)) != 0)   /* NKJH: SELECT picks DESTROY page A (left) or B (right);
+                                                               * not the tempo while SEL is held */
+        destroy_page = s > 0;
     if (layer == LY_FX && (s = panel_enc(EN_SELECT)) != 0) {   /* (2.7.2) SELECT: the punch-in FX fade (GLO > ... ), not the
                                                                * tempo while FX is held; shown top right (layer_screen_draw) */
         song.g[G_FXFADE] = (int16_t)clamp(song.g[G_FXFADE] + s, 0, 15);
@@ -944,17 +944,20 @@ UI_SMALL static void layer_screen_draw(void)
             tl[i].bg = pc == root ? col : TE_G1;
             tl[i].fg = pc == root ? C_BLACK : in ? C_WHITE : TE_G2;
         }
-        lab[0] = "chord", lab[1] = "scale", lab[2] = "keys", lab[3] = "transp";
-        te_lower(v[0], N_CHORD[clamp(t->p[P_CHORD], 0, 5)], 8);
-        te_lower(v[1], N_SCALE[clamp(trk[0].p[P_SCALE], 0, NSCALES - 1)], 8);
-        te_lower(v[2], N_QUANT[clamp(t->p[P_QUANT], 0, 2)], 8);
-        fmt_int(v[3], t->p[P_TRANS]);
-        if (is_drum(t))
-            v[0][0] = v[2][0] = v[3][0] = 0;
-        ratio[0] = t->p[P_CHORD] * 200;
-        ratio[1] = trk[0].p[P_SCALE] * 1000 / (NSCALES - 1);
-        ratio[2] = t->p[P_QUANT] * 500;
-        ratio[3] = (t->p[P_TRANS] + 24) * 1000 / 48;
+        str_cpy(sub, destroy_page ? "destroy B  select <" : "destroy A  select >", sizeof sub);   /* NKJH */
+        for (i = 0; i < 4u; i++) {
+            uint32_t id = DESTROY_ID[destroy_page][i];
+            lab[i] = DESTROY_LAB[destroy_page][i];
+            if (id == G_FILT) {
+                const char *u;
+                param_format(&GP[G_FILT], song.g[G_FILT], v[i], &u);
+                ratio[i] = (song.g[G_FILT] - GP[G_FILT].min) * 1000 / (GP[G_FILT].max - GP[G_FILT].min);
+            } else {
+                fmt_int(v[i], song.g[id] * 100 / 127);
+                str_cpy(v[i] + str_len(v[i]), "%", 2);
+                ratio[i] = song.g[id] * 1000 / 127;
+            }
+        }
         break;
     }
     case LY_MIX: {                                      /* mute 1..4, solo 1..4, fill / fill bar, tap */
